@@ -118,7 +118,6 @@ function prepareNextTimer() {
     } else {
       timeLeft = (result.workTime || 25) * 60;
     }
-    isWorkTime = !isWorkTime;
     updateIcon(isWorkTime);
     broadcastState();
   });
@@ -166,6 +165,7 @@ function setupNotificationListeners() {
   chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
     if (isWorkTime) {
       if (buttonIndex === 0) {
+        isWorkTime = false;
         prepareNextTimer();
         startTimer();
       } else {
@@ -178,10 +178,12 @@ function setupNotificationListeners() {
       }
     } else {
       if (buttonIndex === 0) {
+        isWorkTime = true;
         prepareNextTimer();
         startTimer();
       } else {
         chrome.storage.local.get(['breakTime'], (result) => {
+          isWorkTime = false;
           timeLeft = (result.breakTime || 5) * 60;
           updateIcon(isWorkTime);
           broadcastState();
