@@ -203,6 +203,8 @@ function setupNotificationListeners() {
           isWorkTime = false;
           timeLeft = (result.breakTime || 5) * 60;
           updateIcon(isWorkTime);
+          startTimer();
+          isRunning = true;
           broadcastState();
         });
       }
