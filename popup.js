@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     chrome.runtime.sendMessage({ type: 'getState' }, (response) => {
       if (response) {
+        console.log('getState', response);
         isWorkTime = response.isWorkTime;
         updateButtonStates(response.isRunning);
         updateDisplayFromSeconds(response.timeLeft);

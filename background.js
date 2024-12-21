@@ -34,6 +34,7 @@ chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.get(['workTime', 'soundEnabled'], (result) => {
     const workTime = validateAndConvertTime(result.workTime);
     timeLeft = workTime * 60;
+    console.log('初始化设置 timeLeft:', timeLeft);
     isWorkTime = true;
     isRunning = false;
     // 如果声音设置不存在，默认开启
@@ -109,6 +110,7 @@ function resetTimer() {
   chrome.storage.local.get(['workTime'], (result) => {
     const workTime = validateAndConvertTime(result.workTime);
     timeLeft = workTime * 60;
+    console.log('重置计时器设置 timeLeft:', timeLeft);
     broadcastState();
   });
 }
@@ -116,6 +118,7 @@ function resetTimer() {
 function updateTimer() {
   if (timeLeft > 0) {
     timeLeft--;
+    console.log('更新计时器设置 timeLeft:', timeLeft);
     broadcastState();
   } else {
     handleTimerComplete();
@@ -145,9 +148,11 @@ function prepareNextTimer() {
     if (isWorkTime) {
       const breakTime = validateAndConvertTime(result.breakTime);
       timeLeft = breakTime * 60;
+      console.log('准备休息时间设置 timeLeft:', timeLeft);
     } else {
       const workTime = validateAndConvertTime(result.workTime);
       timeLeft = workTime * 60;
+      console.log('准备工作时间设置 timeLeft:', timeLeft);
     }
     updateIcon(isWorkTime);
     broadcastState();
@@ -246,7 +251,10 @@ function setupNotificationListeners() {
         chrome.storage.local.get(['workTime'], (result) => {
           isWorkTime = true;
           timeLeft = (result.workTime || 25) * 60;
+          console.log('跳过休息设置 timeLeft:', timeLeft);
           updateIcon(isWorkTime);
+          startTimer();
+          isRunning = true;
           broadcastState();
         });
       }
@@ -256,6 +264,7 @@ function setupNotificationListeners() {
         isWorkTime = true;
         chrome.storage.local.get(['workTime'], (result) => {
           timeLeft = (result.workTime || 25) * 60;
+          console.log('开始新番茄设置 timeLeft:', timeLeft);
           updateIcon(isWorkTime);
           broadcastState();
           startTimer();
@@ -265,6 +274,7 @@ function setupNotificationListeners() {
         chrome.storage.local.get(['breakTime'], (result) => {
           isWorkTime = false;
           timeLeft = (result.breakTime || 5) * 60;
+          console.log('继续休息设置 timeLeft:', timeLeft);
           updateIcon(isWorkTime);
           startTimer();
           isRunning = true;
@@ -282,6 +292,7 @@ function setupNotificationListeners() {
       isWorkTime = true;
       chrome.storage.local.get(['workTime'], (result) => {
         timeLeft = (result.workTime || 25) * 60;
+        console.log('通知关闭重置 timeLeft:', timeLeft);
         isRunning = false;
         updateIcon(isWorkTime);
         saveState();
