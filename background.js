@@ -284,6 +284,7 @@ function setupNotificationListeners() {
         timeLeft = (result.workTime || 25) * 60;
         isRunning = false;
         updateIcon(isWorkTime);
+        saveState();
         broadcastState();
       });
     }
