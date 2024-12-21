@@ -3,12 +3,24 @@ let timeLeft = 25 * 60;
 let isRunning = false;
 let isWorkTime = true;
 
+// 更新图标状态
+function updateIcon(isWork) {
+  chrome.action.setIcon({
+    path: {
+      "16": isWork ? "images/icon16_work.png" : "images/icon16_break.png",
+      "48": isWork ? "images/icon48_work.png" : "images/icon48_break.png",
+      "128": isWork ? "images/icon128_work.png" : "images/icon128_break.png"
+    }
+  });
+}
+
 // 初始化状态
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.get(['timeLeft', 'isRunning', 'isWorkTime', 'workTime'], (result) => {
     timeLeft = result.timeLeft || (result.workTime || 25) * 60;
     isWorkTime = result.isWorkTime !== undefined ? result.isWorkTime : true;
     isRunning = false;
+    updateIcon(isWorkTime);
     broadcastState();
   });
 });
@@ -68,6 +80,7 @@ function resetTimer() {
   isRunning = false;
   clearInterval(timer);
   isWorkTime = true;
+  updateIcon(isWorkTime);
   
   // 从存储中获取工作时间
   chrome.storage.local.get(['workTime'], (result) => {
@@ -94,6 +107,7 @@ function broadcastState() {
       isWorkTime
     }
   });
+  updateIcon(isWorkTime);
   saveState();
 }
 
@@ -105,6 +119,7 @@ function prepareNextTimer() {
       timeLeft = (result.workTime || 25) * 60;
     }
     isWorkTime = !isWorkTime;
+    updateIcon(isWorkTime);
     broadcastState();
   });
 }
@@ -157,6 +172,7 @@ function setupNotificationListeners() {
         chrome.storage.local.get(['workTime'], (result) => {
           isWorkTime = true;
           timeLeft = (result.workTime || 25) * 60;
+          updateIcon(isWorkTime);
           broadcastState();
         });
       }
@@ -167,6 +183,7 @@ function setupNotificationListeners() {
       } else {
         chrome.storage.local.get(['breakTime'], (result) => {
           timeLeft = (result.breakTime || 5) * 60;
+          updateIcon(isWorkTime);
           broadcastState();
         });
       }
