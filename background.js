@@ -1,12 +1,26 @@
 let timer;
-let timeLeft;
+let timeLeft = 25 * 60;
 let isRunning = false;
 let isWorkTime = true;
 
 // 初始化状态
 chrome.runtime.onInstalled.addListener(() => {
-  resetTimer();
+  chrome.storage.local.get(['timeLeft', 'isRunning', 'isWorkTime', 'workTime'], (result) => {
+    timeLeft = result.timeLeft || (result.workTime || 25) * 60;
+    isWorkTime = result.isWorkTime !== undefined ? result.isWorkTime : true;
+    isRunning = false;
+    broadcastState();
+  });
 });
+
+// 保存状态到storage
+function saveState() {
+  chrome.storage.local.set({
+    timeLeft,
+    isRunning,
+    isWorkTime
+  });
+}
 
 // 处理来自popup的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -22,7 +36,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       break;
     case 'getState':
       sendResponse({
-        timeLeft,
+        timeLeft: timeLeft || 0,
         isRunning,
         isWorkTime
       });
@@ -75,11 +89,12 @@ function broadcastState() {
   chrome.runtime.sendMessage({
     type: 'timerUpdate',
     state: {
-      timeLeft,
+      timeLeft: timeLeft || 0,
       isRunning,
       isWorkTime
     }
   });
+  saveState();
 }
 
 function prepareNextTimer() {
@@ -108,7 +123,7 @@ function handleTimerComplete() {
     
     chrome.notifications.create(notificationId, {
       type: 'basic',
-      iconUrl: 'images/icon128.png',
+      iconUrl: chrome.runtime.getURL('images/icon128_work.png'),
       title: '番茄时间完成！',
       message: '恭喜完成一个番茄时间！点击此通知开始休息时间。',
       requireInteraction: true,
@@ -120,7 +135,7 @@ function handleTimerComplete() {
   } else {
     chrome.notifications.create(notificationId, {
       type: 'basic',
-      iconUrl: 'images/icon128.png',
+      iconUrl: chrome.runtime.getURL('images/icon128_break.png'),
       title: '休息时间结束！',
       message: '休息结束了！点击此通知开始新的番茄时间。',
       requireInteraction: true,

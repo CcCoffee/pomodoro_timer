@@ -8,6 +8,35 @@ const resetButton = document.getElementById('reset');
 const workTimeInput = document.getElementById('work-time');
 const breakTimeInput = document.getElementById('break-time');
 const completedCount = document.getElementById('completed-count');
+const container = document.getElementById('container');
+const statusText = document.getElementById('status-text');
+
+// 更新状态颜色和图标
+function updateStateVisuals(isWork) {
+  if (isWork) {
+    container.className = 'work-mode';
+    statusText.textContent = '工作时间';
+    // 更新图标为红色
+    chrome.action.setIcon({
+      path: {
+        "16": "images/icon16_work.png",
+        "48": "images/icon48_work.png",
+        "128": "images/icon128_work.png"
+      }
+    });
+  } else {
+    container.className = 'break-mode';
+    statusText.textContent = '休息时间';
+    // 更新图标为绿色
+    chrome.action.setIcon({
+      path: {
+        "16": "images/icon16_break.png",
+        "48": "images/icon48_break.png",
+        "128": "images/icon128_break.png"
+      }
+    });
+  }
+}
 
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
@@ -27,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isWorkTime = response.isWorkTime;
         updateButtonStates(response.isRunning);
         updateDisplayFromSeconds(response.timeLeft);
+        updateStateVisuals(response.isWorkTime);
       }
     });
   });
@@ -67,6 +97,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     isWorkTime = state.isWorkTime;
     updateButtonStates(state.isRunning);
     updateDisplayFromSeconds(state.timeLeft);
+    updateStateVisuals(state.isWorkTime);
   }
 });
 

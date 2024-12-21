@@ -2,32 +2,104 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>番茄时间</title>
-  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      width: 300px;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+    }
+    
+    #container {
+      padding: 15px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+    
+    #container.work-mode {
+      background-color: #ffeded;
+      border: 2px solid #ff6b6b;
+    }
+    
+    #container.break-mode {
+      background-color: #edfff0;
+      border: 2px solid #6bff6b;
+    }
+    
+    #status-text {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .work-mode #status-text {
+      color: #ff6b6b;
+    }
+    
+    .break-mode #status-text {
+      color: #2eb62e;
+    }
+    
+    #time-display {
+      font-size: 48px;
+      text-align: center;
+      margin: 10px 0;
+    }
+    
+    .settings {
+      margin: 10px 0;
+      display: flex;
+      justify-content: space-between;
+    }
+    
+    .buttons {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
+    
+    button {
+      padding: 5px 15px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      cursor: pointer;
+    }
+    
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    input {
+      width: 50px;
+    }
+    
+    .completed {
+      text-align: center;
+      margin-top: 10px;
+      color: #666;
+    }
+  </style>
 </head>
 <body>
-  <div class="container">
-    <h1>番茄时间</h1>
-    <div class="timer">
-      <div id="time-display">25:00</div>
-      <div class="controls">
-        <button id="start">开始</button>
-        <button id="pause">暂停</button>
-        <button id="reset">重置</button>
-      </div>
-    </div>
+  <div id="container" class="work-mode">
+    <div id="status-text">工作时间</div>
+    <div id="time-display">25:00</div>
     <div class="settings">
-      <div class="setting-item">
-        <label>工作时间（分钟）:</label>
-        <input type="number" id="work-time" value="25" min="1" max="60">
+      <div>
+        工作时间：<input type="number" id="work-time" min="1" max="60" value="25">分钟
       </div>
-      <div class="setting-item">
-        <label>休息时间（分钟）:</label>
-        <input type="number" id="break-time" value="5" min="1" max="30">
+      <div>
+        休息时间：<input type="number" id="break-time" min="1" max="60" value="5">分钟
       </div>
     </div>
-    <div class="stats">
-      <p>今日完成番茄数：<span id="completed-count">0</span></p>
+    <div class="buttons">
+      <button id="start">开始</button>
+      <button id="pause" disabled>暂停</button>
+      <button id="reset">重置</button>
+    </div>
+    <div class="completed">
+      今日完成番茄数：<span id="completed-count">0</span>
     </div>
   </div>
   <script src="popup.js"></script>
