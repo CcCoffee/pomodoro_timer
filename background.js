@@ -3,6 +3,19 @@ let timeLeft = 25 * 60;
 let isRunning = false;
 let isWorkTime = true;
 
+// 添加常量定义
+const DEFAULT_WORK_TIME = 25;
+const DEFAULT_BREAK_TIME = 5;
+
+// 添加验证函数
+function validateAndConvertTime(minutes) {
+  let value = parseInt(minutes);
+  if (isNaN(value) || value < 1) {
+    return DEFAULT_WORK_TIME;
+  }
+  return Math.floor(Math.min(Math.max(value, 1), 60));
+}
+
 // 更新图标状态
 function updateIcon(isWork) {
   chrome.action.setIcon({
@@ -16,9 +29,10 @@ function updateIcon(isWork) {
 
 // 初始化状态
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.local.get(['timeLeft', 'isRunning', 'isWorkTime', 'workTime'], (result) => {
-    timeLeft = result.timeLeft || (result.workTime || 25) * 60;
-    isWorkTime = result.isWorkTime !== undefined ? result.isWorkTime : true;
+  chrome.storage.local.get(['workTime'], (result) => {
+    const workTime = validateAndConvertTime(result.workTime);
+    timeLeft = workTime * 60;
+    isWorkTime = true;
     isRunning = false;
     updateIcon(isWorkTime);
     broadcastState();
@@ -86,9 +100,9 @@ function resetTimer() {
   isWorkTime = true;
   updateIcon(isWorkTime);
   
-  // 从存储中获取工作时间
   chrome.storage.local.get(['workTime'], (result) => {
-    timeLeft = (result.workTime || 25) * 60;
+    const workTime = validateAndConvertTime(result.workTime);
+    timeLeft = workTime * 60;
     broadcastState();
   });
 }
@@ -123,9 +137,11 @@ function broadcastState() {
 function prepareNextTimer() {
   chrome.storage.local.get(['workTime', 'breakTime'], (result) => {
     if (isWorkTime) {
-      timeLeft = (result.breakTime || 5) * 60;
+      const breakTime = validateAndConvertTime(result.breakTime);
+      timeLeft = breakTime * 60;
     } else {
-      timeLeft = (result.workTime || 25) * 60;
+      const workTime = validateAndConvertTime(result.workTime);
+      timeLeft = workTime * 60;
     }
     updateIcon(isWorkTime);
     broadcastState();

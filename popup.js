@@ -45,8 +45,28 @@ function formatTimeDisplay(seconds) {
   }
 }
 
+// 添加重置番茄数量的函数
+function checkAndResetPomodoroCount() {
+  chrome.storage.local.get(['lastResetDate'], (result) => {
+    const now = new Date();
+    const today = now.toDateString();
+    
+    if (!result.lastResetDate || result.lastResetDate !== today) {
+      // 如果是新的一天，重置番茄数量
+      chrome.storage.local.set({
+        completedPomodoros: 0,
+        lastResetDate: today
+      });
+      completedCount.textContent = '0';
+    }
+  });
+}
+
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
+  // 检查是否需要重置番茄数量
+  checkAndResetPomodoroCount();
+  
   chrome.storage.local.get(['workTime', 'breakTime', 'completedPomodoros', 'timeUnit'], (result) => {
     if (result.workTime) workTimeInput.value = result.workTime;
     if (result.breakTime) breakTimeInput.value = result.breakTime;
@@ -69,18 +89,22 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   workTimeInput.addEventListener('change', () => {
-    const value = parseInt(workTimeInput.value);
-    workTimeInput.value = Math.min(Math.max(value, 1), 60);
-    chrome.storage.local.set({ workTime: workTimeInput.value });
+    let value = parseInt(workTimeInput.value);
+    if (isNaN(value)) value = 25; // 默认值
+    value = Math.floor(Math.min(Math.max(value, 1), 60));
+    workTimeInput.value = value;
+    chrome.storage.local.set({ workTime: value });
     if (isWorkTime) {
       chrome.runtime.sendMessage({ type: 'resetTimer' });
     }
   });
 
   breakTimeInput.addEventListener('change', () => {
-    const value = parseInt(breakTimeInput.value);
-    breakTimeInput.value = Math.min(Math.max(value, 1), 60);
-    chrome.storage.local.set({ breakTime: breakTimeInput.value });
+    let value = parseInt(breakTimeInput.value);
+    if (isNaN(value)) value = 5; // 默认值
+    value = Math.floor(Math.min(Math.max(value, 1), 60));
+    breakTimeInput.value = value;
+    chrome.storage.local.set({ breakTime: value });
     if (!isWorkTime) {
       chrome.runtime.sendMessage({ type: 'resetTimer' });
     }
