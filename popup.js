@@ -109,6 +109,17 @@ document.addEventListener('DOMContentLoaded', () => {
       chrome.runtime.sendMessage({ type: 'resetTimer' });
     }
   });
+
+  // 获取声音设置
+  chrome.storage.local.get(['soundEnabled'], (result) => {
+    const soundEnabled = result.soundEnabled !== undefined ? result.soundEnabled : true;
+    document.getElementById('sound-enabled').checked = soundEnabled;
+  });
+
+  // 监听声音设置变化
+  document.getElementById('sound-enabled').addEventListener('change', (e) => {
+    chrome.storage.local.set({ soundEnabled: e.target.checked });
+  });
 });
 
 startButton.addEventListener('click', () => {

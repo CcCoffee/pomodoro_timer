@@ -30,11 +30,15 @@ function updateIcon(isWork) {
 
 // 初始化状态
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.local.get(['workTime'], (result) => {
+  chrome.storage.local.get(['workTime', 'soundEnabled'], (result) => {
     const workTime = validateAndConvertTime(result.workTime);
     timeLeft = workTime * 60;
     isWorkTime = true;
     isRunning = false;
+    // 如果声音设置不存在，默认开启
+    if (result.soundEnabled === undefined) {
+      chrome.storage.local.set({ soundEnabled: true });
+    }
     updateIcon(isWorkTime);
     broadcastState();
   });
@@ -165,6 +169,12 @@ async function createOffscreenDocument() {
 
 async function playNotificationSound() {
   try {
+    // 检查声音是否开启
+    const result = await chrome.storage.local.get(['soundEnabled']);
+    if (!result.soundEnabled) {
+      return; // 如果声音被禁用，直接返回
+    }
+
     await createOffscreenDocument();
     const response = await chrome.runtime.sendMessage({
       target: 'offscreen',
