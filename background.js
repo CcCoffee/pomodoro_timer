@@ -39,12 +39,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   switch (message.type) {
     case 'startTimer':
       startTimer();
+      sendResponse({ success: true });
       break;
     case 'pauseTimer':
       pauseTimer();
+      sendResponse({ success: true });
       break;
     case 'resetTimer':
       resetTimer();
+      sendResponse({ success: true });
       break;
     case 'getState':
       sendResponse({
@@ -55,6 +58,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       break;
     case 'registerNotificationListeners':
       setupNotificationListeners();
+      sendResponse({ success: true });
       break;
   }
   return true;
@@ -106,7 +110,12 @@ function broadcastState() {
       isRunning,
       isWorkTime
     }
+  }).catch(error => {
+    if (error.message !== "Could not establish connection. Receiving end does not exist.") {
+      console.error('广播状态时出错:', error);
+    }
   });
+  
   updateIcon(isWorkTime);
   saveState();
 }
@@ -165,10 +174,12 @@ function setupNotificationListeners() {
   chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
     if (isWorkTime) {
       if (buttonIndex === 0) {
+        // 开始休息
         isWorkTime = false;
         prepareNextTimer();
         startTimer();
       } else {
+        // 跳过休息
         chrome.storage.local.get(['workTime'], (result) => {
           isWorkTime = true;
           timeLeft = (result.workTime || 25) * 60;
@@ -178,10 +189,16 @@ function setupNotificationListeners() {
       }
     } else {
       if (buttonIndex === 0) {
+        // 开始新番茄
         isWorkTime = true;
-        prepareNextTimer();
-        startTimer();
+        chrome.storage.local.get(['workTime'], (result) => {
+          timeLeft = (result.workTime || 25) * 60;
+          updateIcon(isWorkTime);
+          broadcastState();
+          startTimer();
+        });
       } else {
+        // 继续休息
         chrome.storage.local.get(['breakTime'], (result) => {
           isWorkTime = false;
           timeLeft = (result.breakTime || 5) * 60;
