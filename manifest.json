@@ -7,7 +7,8 @@
     "storage",
     "notifications",
     "alarms",
-    "background"
+    "background",
+    "offscreen"
   ],
   "host_permissions": [],
   "background": {
@@ -27,7 +28,7 @@
     "128": "images/icon128_work.png"
   },
   "web_accessible_resources": [{
-    "resources": ["images/*"],
+    "resources": ["images/*", "sounds/*.mp3", "offscreen.html", "offscreen.js"],
     "matches": ["<all_urls>"]
   }]
 } 

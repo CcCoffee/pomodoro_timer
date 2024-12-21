@@ -6,6 +6,7 @@ let isWorkTime = true;
 // 添加常量定义
 const DEFAULT_WORK_TIME = 25;
 const DEFAULT_BREAK_TIME = 5;
+const NOTIFICATION_SOUND_URL = 'sounds/notification.mp3';
 
 // 添加验证函数
 function validateAndConvertTime(minutes) {
@@ -148,9 +149,43 @@ function prepareNextTimer() {
   });
 }
 
+async function createOffscreenDocument() {
+  const existingContexts = await chrome.runtime.getContexts({
+    contextTypes: ['OFFSCREEN_DOCUMENT']
+  });
+  
+  if (existingContexts.length > 0) return;
+  
+  await chrome.offscreen.createDocument({
+    url: 'offscreen.html',
+    reasons: ['AUDIO_PLAYBACK'],
+    justification: 'Playing notification sound'
+  });
+}
+
+async function playNotificationSound() {
+  try {
+    await createOffscreenDocument();
+    const response = await chrome.runtime.sendMessage({
+      target: 'offscreen',
+      type: 'playSound',
+      soundUrl: chrome.runtime.getURL(NOTIFICATION_SOUND_URL)
+    });
+    
+    if (!response || !response.success) {
+      console.error('播放提示音失败:', response?.error || '未知错误');
+    }
+  } catch (error) {
+    console.error('播放提示音失败:', error);
+  }
+}
+
 function handleTimerComplete() {
   clearInterval(timer);
   isRunning = false;
+  
+  // 播放提示音
+  playNotificationSound();
   
   const notificationId = Date.now().toString();
   
