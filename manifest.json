@@ -1,13 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "番茄时间",
+  "name": "番茄时钟",
   "version": "1.0",
-  "description": "一个帮助你使用番茄工作法的Chrome插件",
+  "description": "一个简单的番茄工作法计时器",
   "permissions": [
     "storage",
     "notifications",
-    "alarms"
+    "alarms",
+    "background"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -15,9 +19,6 @@
       "48": "images/icon48.png",
       "128": "images/icon128.png"
     }
-  },
-  "background": {
-    "service_worker": "background.js"
   },
   "icons": {
     "16": "images/icon16.png",
