@@ -64,10 +64,12 @@ function checkAndResetPomodoroCount() {
 
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOMContentLoaded');
   // 检查是否需要重置番茄数量
   checkAndResetPomodoroCount();
   
   chrome.storage.local.get(['workTime', 'breakTime', 'completedPomodoros', 'timeUnit'], (result) => {
+    console.log('get storage', result);
     if (result.workTime) workTimeInput.value = result.workTime;
     if (result.breakTime) breakTimeInput.value = result.breakTime;
     if (result.timeUnit) {

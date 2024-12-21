@@ -2,6 +2,7 @@ let timer;
 let timeLeft = 25 * 60;
 let isRunning = false;
 let isWorkTime = true;
+let isClosedByButton = false;
 
 // 添加常量定义
 const DEFAULT_WORK_TIME = 25;
@@ -233,6 +234,7 @@ function handleTimerComplete() {
 
 function setupNotificationListeners() {
   chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
+    isClosedByButton = true;
     if (isWorkTime) {
       if (buttonIndex === 0) {
         // 开始休息
@@ -271,5 +273,20 @@ function setupNotificationListeners() {
       }
     }
     chrome.notifications.clear(notificationId);
+  });
+
+  // 添加通知关闭的监听器
+  chrome.notifications.onClosed.addListener((notificationId) => {
+    if (!isClosedByButton) {
+      // 当通知被关闭时，重置到工作状态
+      isWorkTime = true;
+      chrome.storage.local.get(['workTime'], (result) => {
+        timeLeft = (result.workTime || 25) * 60;
+        isRunning = false;
+        updateIcon(isWorkTime);
+        broadcastState();
+      });
+    }
+    isClosedByButton = false;
   });
 } 
