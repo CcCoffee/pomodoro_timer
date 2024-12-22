@@ -2,6 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
+  <script src="chart.js"></script>
   <style>
     :root {
       --primary-color: #2D3436;
@@ -227,56 +228,199 @@
     input:checked + .slider:before {
       transform: translateX(26px);
     }
+
+    /* 新的导航栏样式 */
+    .nav-header {
+      display: flex;
+      margin-bottom: 12px;
+      background: white;
+      border-radius: 12px;
+      padding: 4px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-button {
+      flex: 1;
+      padding: 8px 16px;
+      text-align: center;
+      border: none;
+      background: transparent;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #64748B;
+      transition: all 0.3s ease;
+    }
+
+    .nav-button.active {
+      background: var(--primary-color);
+      color: white;
+    }
+
+    /* 容器样式优化 */
+    .container-wrapper {
+      position: relative;
+      height: 520px; /* 固定高度，避免切换时的跳动 */
+      overflow: hidden;
+    }
+
+    #container, #stats-container {
+      position: absolute;
+      width: 100%;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      opacity: 1;
+    }
+
+    #container {
+      transform: translateX(0);
+    }
+
+    #stats-container {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+
+    .show-stats #container {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+
+    .show-stats #stats-container {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    /* 统计页面样式优化 */
+    .chart-section {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .chart-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #64748B;
+      margin-bottom: 12px;
+    }
+
+    .chart-container {
+      height: 140px;
+      margin-bottom: 0;
+    }
+
+    /* 图表标题样式 */
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .total-count {
+      font-size: 12px;
+      color: #94A3B8;
+      padding: 4px 8px;
+      background: #F1F5F9;
+      border-radius: 6px;
+    }
   </style>
 </head>
 <body>
-  <div id="container" class="work-mode">
-    <div class="header">
-      <div id="status-text"></div>
-      <div class="time-unit-selector">
-        <button class="unit-btn active" data-unit="min"></button>
-        <button class="unit-btn" data-unit="sec"></button>
+  <!-- 导航栏 -->
+  <div class="nav-header">
+    <button class="nav-button active" data-page="timer">专注计时</button>
+    <button class="nav-button" data-page="stats">统计分析</button>
+  </div>
+
+  <div class="container-wrapper">
+    <!-- 计时器容器 -->
+    <div id="container" class="work-mode">
+      <div class="header">
+        <div id="status-text"></div>
+        <div class="time-unit-selector">
+          <button class="unit-btn active" data-unit="min"></button>
+          <button class="unit-btn" data-unit="sec"></button>
+        </div>
+      </div>
+      
+      <div id="time-display">25:00</div>
+      
+      <div class="settings">
+        <div class="setting-item">
+          <span class="setting-label" id="work-duration-label"></span>
+          <input type="number" id="work-time" min="1" max="60" value="25">
+          <span class="setting-label minutes-label"></span>
+        </div>
+        <div class="setting-item">
+          <span class="setting-label" id="break-duration-label"></span>
+          <input type="number" id="break-time" min="1" max="60" value="5">
+          <span class="setting-label minutes-label"></span>
+        </div>
+        <div class="setting-item">
+          <span class="setting-label" id="sound-label"></span>
+          <label class="switch">
+            <input type="checkbox" id="sound-enabled" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="setting-item">
+          <span class="setting-label" id="notification-label"></span>
+          <label class="switch">
+            <input type="checkbox" id="notification-enabled" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+      
+      <div class="buttons">
+        <button id="start"></button>
+        <button id="pause"></button>
+        <button id="reset"></button>
+      </div>
+      
+      <div class="completed">
+        <span id="completed-text"></span>
+        <span id="completed-count">0</span>
       </div>
     </div>
     
-    <div id="time-display">25:00</div>
-    
-    <div class="settings">
-      <div class="setting-item">
-        <span class="setting-label" id="work-duration-label"></span>
-        <input type="number" id="work-time" min="1" max="60" value="25">
-        <span class="setting-label minutes-label"></span>
+    <!-- 统计容器 -->
+    <div id="stats-container">
+      <!-- 日统计 -->
+      <div class="chart-section">
+        <div class="chart-header">
+          <div class="chart-title">近30天每日番茄数</div>
+          <div class="total-count" id="daily-total">总计: 0</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="dailyChart"></canvas>
+        </div>
       </div>
-      <div class="setting-item">
-        <span class="setting-label" id="break-duration-label"></span>
-        <input type="number" id="break-time" min="1" max="60" value="5">
-        <span class="setting-label minutes-label"></span>
+      
+      <!-- 周统计 -->
+      <div class="chart-section">
+        <div class="chart-header">
+          <div class="chart-title">近半年每周番茄数</div>
+          <div class="total-count" id="weekly-total">总计: 0</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="weeklyChart"></canvas>
+        </div>
       </div>
-      <div class="setting-item">
-        <span class="setting-label" id="sound-label"></span>
-        <label class="switch">
-          <input type="checkbox" id="sound-enabled" checked>
-          <span class="slider"></span>
-        </label>
+      
+      <!-- 月统计 -->
+      <div class="chart-section">
+        <div class="chart-header">
+          <div class="chart-title">近一年每月番茄数</div>
+          <div class="total-count" id="monthly-total">总计: 0</div>
+        </div>
+        <div class="chart-container">
+          <canvas id="monthlyChart"></canvas>
+        </div>
       </div>
-      <div class="setting-item">
-        <span class="setting-label" id="notification-label"></span>
-        <label class="switch">
-          <input type="checkbox" id="notification-enabled" checked>
-          <span class="slider"></span>
-        </label>
-      </div>
-    </div>
-    
-    <div class="buttons">
-      <button id="start"></button>
-      <button id="pause"></button>
-      <button id="reset"></button>
-    </div>
-    
-    <div class="completed">
-      <span id="completed-text"></span>
-      <span id="completed-count">0</span>
     </div>
   </div>
   <script src="popup.js"></script>

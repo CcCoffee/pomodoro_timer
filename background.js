@@ -89,6 +89,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           isRunning,
           isWorkTime
         };
+      case 'getStats':
+        return processHistoryData();
     }
   };
 
@@ -293,4 +295,106 @@ async function handleTimerComplete() {
       });
     }
   }
+} 
+
+// 统计数据处理
+async function processHistoryData() {
+  const now = new Date();
+  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+  const sixMonthsAgo = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
+  const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+
+  const result = await new Promise((resolve) => {
+    chrome.storage.local.get(['pomodoroHistory'], (data) => {
+      const history = data.pomodoroHistory || [];
+      resolve(history);
+    });
+  });
+
+  return {
+    daily: processDailyData(result, thirtyDaysAgo),
+    weekly: processWeeklyData(result, sixMonthsAgo),
+    monthly: processMonthlyData(result, oneYearAgo)
+  };
+}
+
+function processDailyData(history, startDate) {
+  const dailyData = new Array(30).fill(0);
+  const labels = [];
+  
+  for (let i = 29; i >= 0; i--) {
+    const date = new Date(new Date().getTime() - i * 24 * 60 * 60 * 1000);
+    const dateStr = date.toISOString().split('T')[0];
+    labels.push(dateStr.slice(5)); // 只显示月-日
+    
+    const count = history.filter(h => h.date === dateStr).length;
+    dailyData[29 - i] = count;
+  }
+  
+  return { data: dailyData, labels };
+}
+
+function processWeeklyData(history, startDate) {
+  const weeklyData = new Array(26).fill(0);
+  const labels = [];
+  const weeks = {};
+  
+  history.forEach(record => {
+    const date = new Date(record.date);
+    if (date >= startDate) {
+      const weekKey = getWeekNumber(date);
+      weeks[weekKey] = (weeks[weekKey] || 0) + 1;
+    }
+  });
+  
+  for (let i = 25; i >= 0; i--) {
+    const date = new Date(new Date().getTime() - i * 7 * 24 * 60 * 60 * 1000);
+    const weekKey = getWeekNumber(date);
+    labels.push('W' + weekKey.split('-')[1]);
+    weeklyData[25 - i] = weeks[weekKey] || 0;
+  }
+  
+  return { data: weeklyData, labels };
+}
+
+function processMonthlyData(history, startDate) {
+  const monthlyData = new Array(12).fill(0);
+  const labels = [];
+  const months = {};
+  
+  history.forEach(record => {
+    const date = new Date(record.date);
+    if (date >= startDate) {
+      const monthKey = date.toISOString().slice(0, 7);
+      months[monthKey] = (months[monthKey] || 0) + 1;
+    }
+  });
+  
+  for (let i = 11; i >= 0; i--) {
+    const date = new Date(new Date().getFullYear(), new Date().getMonth() - i, 1);
+    const monthKey = date.toISOString().slice(0, 7);
+    labels.push(monthKey.slice(5)); // 只显示月份
+    monthlyData[11 - i] = months[monthKey] || 0;
+  }
+  
+  return { data: monthlyData, labels };
+}
+
+function getWeekNumber(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+  const yearStart = new Date(d.getFullYear(), 0, 1);
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return d.getFullYear() + '-' + weekNo;
+}
+
+// 更新番茄历史记录
+function updatePomodoroHistory() {
+  const today = new Date().toISOString().split('T')[0];
+  chrome.storage.local.get(['pomodoroHistory'], (result) => {
+    const history = result.pomodoroHistory || [];
+    history.push({ date: today });
+    chrome.storage.local.set({ pomodoroHistory: history });
+  });
 } 

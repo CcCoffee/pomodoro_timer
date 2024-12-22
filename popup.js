@@ -204,4 +204,159 @@ function updateDisplayFromSeconds(seconds) {
 
 chrome.runtime.sendMessage({
   type: 'registerNotificationListeners'
+});
+
+// 统计相关的代码
+let charts = {
+  daily: null,
+  weekly: null,
+  monthly: null
+};
+
+// 导航按钮处理
+document.querySelectorAll('.nav-button').forEach(button => {
+  button.addEventListener('click', () => {
+    const page = button.dataset.page;
+    document.querySelectorAll('.nav-button').forEach(b => b.classList.remove('active'));
+    button.classList.add('active');
+    document.querySelector('.container-wrapper').classList.toggle('show-stats', page === 'stats');
+    
+    if (page === 'stats') {
+      loadAndDisplayStats();
+    }
+  });
+});
+
+// 加载并显示统计数据
+async function loadAndDisplayStats() {
+  chrome.runtime.sendMessage({ type: 'getStats' }, (stats) => {
+    if (stats) {
+      updateCharts(stats);
+      updateTotalCounts(stats);
+    }
+  });
+}
+
+// 更新总计数据
+function updateTotalCounts(stats) {
+  document.getElementById('daily-total').textContent = `总计: ${stats.daily.data.reduce((a, b) => a + b, 0)}`;
+  document.getElementById('weekly-total').textContent = `总计: ${stats.weekly.data.reduce((a, b) => a + b, 0)}`;
+  document.getElementById('monthly-total').textContent = `总计: ${stats.monthly.data.reduce((a, b) => a + b, 0)}`;
+}
+
+// 更新图表
+function updateCharts(stats) {
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false
+      }
+    },
+    scales: {
+      x: {
+        grid: {
+          display: false
+        },
+        ticks: {
+          font: {
+            size: 10
+          }
+        }
+      },
+      y: {
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1,
+          font: {
+            size: 10
+          }
+        },
+        grid: {
+          color: '#E2E8F0'
+        }
+      }
+    },
+    elements: {
+      bar: {
+        borderRadius: 4
+      }
+    }
+  };
+
+  // 更新日统计图表
+  if (charts.daily) charts.daily.destroy();
+  charts.daily = new Chart(document.getElementById('dailyChart'), {
+    type: 'bar',
+    data: {
+      labels: stats.daily.labels,
+      datasets: [{
+        label: '每日番茄数',
+        data: stats.daily.data,
+        backgroundColor: '#FF6B6B88',
+        borderColor: '#FF6B6B',
+        borderWidth: 1
+      }]
+    },
+    options: commonOptions
+  });
+
+  // 更新周统计图表
+  if (charts.weekly) charts.weekly.destroy();
+  charts.weekly = new Chart(document.getElementById('weeklyChart'), {
+    type: 'bar',
+    data: {
+      labels: stats.weekly.labels,
+      datasets: [{
+        label: '每周番茄数',
+        data: stats.weekly.data,
+        backgroundColor: '#2ECC7188',
+        borderColor: '#2ECC71',
+        borderWidth: 1
+      }]
+    },
+    options: commonOptions
+  });
+
+  // 更新月统计图表
+  if (charts.monthly) charts.monthly.destroy();
+  charts.monthly = new Chart(document.getElementById('monthlyChart'), {
+    type: 'bar',
+    data: {
+      labels: stats.monthly.labels,
+      datasets: [{
+        label: '每月番茄数',
+        data: stats.monthly.data,
+        backgroundColor: '#3498DB88',
+        borderColor: '#3498DB',
+        borderWidth: 1
+      }]
+    },
+    options: commonOptions
+  });
+}
+
+// 修改现有的完成番茄时的处理逻辑
+function updatePomodoroHistory() {
+  const today = new Date().toISOString().split('T')[0];
+  chrome.storage.local.get(['pomodoroHistory'], (result) => {
+    const history = result.pomodoroHistory || [];
+    history.push({ date: today });
+    chrome.storage.local.set({ pomodoroHistory: history });
+  });
+}
+
+// 在番茄钟完成时调用更新历史记录
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'timerUpdate') {
+    const state = message.state;
+    isWorkTime = state.isWorkTime;
+    updateButtonStates(state.isRunning);
+    updateDisplayFromSeconds(state.timeLeft);
+    updateStateVisuals(state.isWorkTime);
+  } else if (message.type === 'updateCompletedPomodoros') {
+    completedCount.textContent = message.count;
+    updatePomodoroHistory(); // 添加这行来更新历史记录
+  }
 }); 
