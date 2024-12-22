@@ -144,6 +144,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     updateButtonStates(state.isRunning);
     updateDisplayFromSeconds(state.timeLeft);
     updateStateVisuals(state.isWorkTime);
+  } else if (message.type === 'updateCompletedPomodoros') {
+    completedCount.textContent = message.count;
   }
 });
 

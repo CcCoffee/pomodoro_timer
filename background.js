@@ -208,7 +208,9 @@ function handleTimerComplete() {
   if (isWorkTime) {
     chrome.storage.local.get(['completedPomodoros'], (result) => {
       const count = (result.completedPomodoros || 0) + 1;
-      chrome.storage.local.set({ completedPomodoros: count });
+      chrome.storage.local.set({ completedPomodoros: count }).then(() => {
+        chrome.runtime.sendMessage({ type: 'updateCompletedPomodoros', count });
+      });
     });
     resetCurrentTimer();
     chrome.notifications.create(notificationId, {
