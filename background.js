@@ -30,125 +30,151 @@ function updateIcon(isWork) {
 }
 
 // 初始化状态
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.local.get(['workTime', 'soundEnabled', 'autoSwitch'], (result) => {
+chrome.runtime.onInstalled.addListener(async () => {
+  try {
+    const result = await chrome.storage.local.get(['workTime', 'soundEnabled', 'autoSwitch']);
     const workTime = validateAndConvertTime(result.workTime, true);
     timeLeft = workTime * 60;
     console.log('初始化设置 timeLeft:', timeLeft);
     isWorkTime = true;
     isRunning = false;
+    
     // 如果声音设置不存在，默认开启
     if (result.soundEnabled === undefined) {
-      chrome.storage.local.set({ soundEnabled: true });
+      await chrome.storage.local.set({ soundEnabled: true });
     }
     // 如果自动轮替设置不存在，默认开启
     if (result.autoSwitch === undefined) {
-      chrome.storage.local.set({ autoSwitch: true });
+      await chrome.storage.local.set({ autoSwitch: true });
     }
-    updateIcon(isWorkTime);
-    broadcastState();
-  });
+    
+    await updateIcon(isWorkTime);
+    await broadcastState();
+  } catch (error) {
+    console.error('初始化时出错:', error);
+  }
 });
 
 // 保存状态到storage
-function saveState() {
-  chrome.storage.local.set({
-    timeLeft,
-    isRunning,
-    isWorkTime
-  });
+async function saveState() {
+  try {
+    await chrome.storage.local.set({
+      timeLeft,
+      isRunning,
+      isWorkTime
+    });
+  } catch (error) {
+    console.error('保存状态时出错:', error);
+  }
 }
 
 // 处理来自popup的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  switch (message.type) {
-    case 'startTimer':
-      startTimer();
-      sendResponse({ success: true });
-      break;
-    case 'pauseTimer':
-      pauseTimer();
-      sendResponse({ success: true });
-      break;
-    case 'resetTimer':
-      resetTimer();
-      sendResponse({ success: true });
-      break;
-    case 'getState':
-      sendResponse({
-        timeLeft: timeLeft || 0,
-        isRunning,
-        isWorkTime
-      });
-      break;
-    case 'registerNotificationListeners':
-      setupNotificationListeners();
-      sendResponse({ success: true });
-      break;
-  }
+  const handleMessage = async () => {
+    switch (message.type) {
+      case 'startTimer':
+        await startTimer();
+        return { success: true };
+      case 'pauseTimer':
+        await pauseTimer();
+        return { success: true };
+      case 'resetTimer':
+        await resetTimer();
+        return { success: true };
+      case 'getState':
+        return {
+          timeLeft: timeLeft || 0,
+          isRunning,
+          isWorkTime
+        };
+      case 'registerNotificationListeners':
+        setupNotificationListeners();
+        return { success: true };
+    }
+  };
+
+  handleMessage().then(sendResponse);
   return true;
 });
 
-function startTimer() {
-  if (!isRunning) {
-    isRunning = true;
-    timer = setInterval(updateTimer, 100);
-    broadcastState();
-  }
-}
-
-function pauseTimer() {
-  if (isRunning) {
+async function startTimer() {
+  try {
+    if (!isRunning) {
+      isRunning = true;
+      timer = setInterval(async () => {
+        await updateTimer();
+      }, 100);
+      await broadcastState();
+    }
+  } catch (error) {
+    console.error('启动计时器时出错:', error);
     isRunning = false;
-    clearInterval(timer);
-    broadcastState();
   }
 }
 
-function resetTimer() {
+async function pauseTimer() {
+  try {
+    if (isRunning) {
+      isRunning = false;
+      clearInterval(timer);
+      await broadcastState();
+    }
+  } catch (error) {
+    console.error('暂停计时器时出错:', error);
+  }
+}
+
+async function resetTimer() {
   isRunning = false;
   clearInterval(timer);
   isWorkTime = true;
   updateIcon(isWorkTime);
   
-  chrome.storage.local.get(['workTime'], (result) => {
-    const workTime = validateAndConvertTime(result.workTime, true);
-    timeLeft = workTime * 60;
-    console.log('重置计时器设置 timeLeft:', timeLeft);
-    broadcastState();
-  });
+  const result = await chrome.storage.local.get(['workTime']);
+  const workTime = validateAndConvertTime(result.workTime, true);
+  timeLeft = workTime * 60;
+  console.log('重置计时器设置 timeLeft:', timeLeft);
+  await broadcastState();
 }
 
-function updateTimer() {
-  if (timeLeft > 0) {
-    timeLeft--;
-    console.log('更新计时器设置 timeLeft:', timeLeft);
-    broadcastState();
-  } else {
-    handleTimerComplete();
+async function updateTimer() {
+  try {
+    if (timeLeft > 0) {
+      timeLeft--;
+      console.log('更新计时器设置 timeLeft:', timeLeft);
+      await broadcastState();
+    } else {
+      await handleTimerComplete();
+    }
+  } catch (error) {
+    console.error('更新计时器时出错:', error);
+    await pauseTimer();
   }
 }
 
-function broadcastState() {
-  chrome.runtime.sendMessage({
-    type: 'timerUpdate',
-    state: {
-      timeLeft: timeLeft || 0,
-      isRunning,
-      isWorkTime
-    }
-  }).catch(error => {
+async function broadcastState() {
+  try {
+    await chrome.runtime.sendMessage({
+      type: 'timerUpdate',
+      state: {
+        timeLeft: timeLeft || 0,
+        isRunning,
+        isWorkTime
+      }
+    });
+  } catch (error) {
     if (error.message !== "Could not establish connection. Receiving end does not exist.") {
       console.error('广播状态时出错:', error);
     }
-  });
+  }
   
   updateIcon(isWorkTime);
-  saveState();
+  await saveState();
 }
 
-function prepareNextTimer() {
-  chrome.storage.local.get(['workTime', 'breakTime'], (result) => {
+async function prepareNextTimer() {
+  try {
+    const result = await chrome.storage.local.get(['workTime', 'breakTime']);
     if (isWorkTime) {
       const breakTime = validateAndConvertTime(result.breakTime, false);
       timeLeft = breakTime * 60;
@@ -158,9 +184,11 @@ function prepareNextTimer() {
       timeLeft = workTime * 60;
       console.log('准备工作时间设置 timeLeft:', timeLeft);
     }
-    updateIcon(isWorkTime);
-    broadcastState();
-  });
+    await updateIcon(isWorkTime);
+    await broadcastState();
+  } catch (error) {
+    console.error('准备下一个计时器时出错:', error);
+  }
 }
 
 async function createOffscreenDocument() {
@@ -200,162 +228,156 @@ async function playNotificationSound() {
   }
 }
 
-function handleTimerComplete() {
+async function handleTimerComplete() {
   clearInterval(timer);
   isRunning = false;
   
   // 播放提示音
-  playNotificationSound();
+  await playNotificationSound();
   
   const notificationId = Date.now().toString();
+  const result = await chrome.storage.local.get(['autoSwitch']);
+  const autoSwitch = result.autoSwitch ?? true;
   
-  chrome.storage.local.get(['autoSwitch'], async (result) => {
-    const autoSwitch = result.autoSwitch ?? true;
+  if (isWorkTime) {
+    const pomodoroResult = await chrome.storage.local.get(['completedPomodoros']);
+    const count = (pomodoroResult.completedPomodoros || 0) + 1;
+    await chrome.storage.local.set({ completedPomodoros: count });
+    await resetCurrentTimer();
     
-    if (isWorkTime) {
-      chrome.storage.local.get(['completedPomodoros'], (result) => {
-        const count = (result.completedPomodoros || 0) + 1;
-        chrome.storage.local.set({ completedPomodoros: count }).then(() => {
-          chrome.runtime.sendMessage({ type: 'updateCompletedPomodoros', count });
-        });
+    if (autoSwitch) {
+      // 自动开始休息时间
+      isWorkTime = false;
+      const breakResult = await chrome.storage.local.get(['breakTime']);
+      const breakTime = validateAndConvertTime(breakResult.breakTime, false);
+      timeLeft = breakTime * 60;
+      updateIcon(isWorkTime);
+      await broadcastState();
+      await startTimer();
+      
+      // 显示非阻塞通知
+      await chrome.notifications.create(notificationId, {
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('images/icon128_work.png'),
+        title: '番茄时间完成！',
+        message: '已自动开始休息时间。',
+        requireInteraction: false
       });
-      resetCurrentTimer();
-      
-      if (autoSwitch) {
-        // 自动开始休息时间
-        isWorkTime = false;
-        chrome.storage.local.get(['breakTime'], (result) => {
-          const breakTime = validateAndConvertTime(result.breakTime, false);
-          timeLeft = breakTime * 60;
-          updateIcon(isWorkTime);
-          broadcastState();
-          startTimer();
-        });
-        // 显示非阻塞通知
-        chrome.notifications.create(notificationId, {
-          type: 'basic',
-          iconUrl: chrome.runtime.getURL('images/icon128_work.png'),
-          title: '番茄时间完成！',
-          message: '已自动开始休息时间。',
-          requireInteraction: false
-        });
-      } else {
-        // 显示需要用户交互的通知
-        chrome.notifications.create(notificationId, {
-          type: 'basic',
-          iconUrl: chrome.runtime.getURL('images/icon128_work.png'),
-          title: '番茄时间完成！',
-          message: '恭喜完成一个番茄时间！点击此通知开始休息时间。',
-          requireInteraction: true,
-          buttons: [
-            { title: '开始休息' },
-            { title: '跳过休息' }
-          ]
-        });
-      }
     } else {
-      resetCurrentTimer();
-      
-      if (autoSwitch) {
-        // 自动开始新的工作时间
-        isWorkTime = true;
-        chrome.storage.local.get(['workTime'], (result) => {
-          timeLeft = validateAndConvertTime(result.workTime, true) * 60;
-          updateIcon(isWorkTime);
-          broadcastState();
-          startTimer();
-        });
-        // 显示非阻塞通知
-        chrome.notifications.create(notificationId, {
-          type: 'basic',
-          iconUrl: chrome.runtime.getURL('images/icon128_break.png'),
-          title: '休息时间结束！',
-          message: '已自动开始新的番茄时间。',
-          requireInteraction: false
-        });
-      } else {
-        // 显示需要用户交互的通知
-        chrome.notifications.create(notificationId, {
-          type: 'basic',
-          iconUrl: chrome.runtime.getURL('images/icon128_break.png'),
-          title: '休息时间结束！',
-          message: '休息结束了！点击此通知开始新的番茄时间。',
-          requireInteraction: true,
-          buttons: [
-            { title: '开始新番茄' },
-            { title: '继续休息' }
-          ]
-        });
-      }
+      // 显示需要用户交互的通知
+      await chrome.notifications.create(notificationId, {
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('images/icon128_work.png'),
+        title: '番茄时间完成！',
+        message: '恭喜完成一个番茄时间！点击此通知开始休息时间。',
+        requireInteraction: true,
+        buttons: [
+          { title: '开始休息' },
+          { title: '跳过休息' }
+        ]
+      });
     }
-  });
+  } else {
+    await resetCurrentTimer();
+    
+    if (autoSwitch) {
+      // 自动开始新的工作时间
+      isWorkTime = true;
+      const workResult = await chrome.storage.local.get(['workTime']);
+      timeLeft = validateAndConvertTime(workResult.workTime, true) * 60;
+      updateIcon(isWorkTime);
+      await broadcastState();
+      await startTimer();
+      
+      // 显示非阻塞通知
+      await chrome.notifications.create(notificationId, {
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('images/icon128_break.png'),
+        title: '休息时间结束！',
+        message: '已自动开始新的番茄时间。',
+        requireInteraction: false
+      });
+    } else {
+      // 显示需要用户交互的通知
+      await chrome.notifications.create(notificationId, {
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('images/icon128_break.png'),
+        title: '休息时间结束！',
+        message: '休息结束了！点击此通知开始新的番茄时间。',
+        requireInteraction: true,
+        buttons: [
+          { title: '开始新番茄' },
+          { title: '继续休息' }
+        ]
+      });
+    }
+  }
 }
 
 function setupNotificationListeners() {
-  chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
-    isClosedByButton = true;
-    if (isWorkTime) {
-      if (buttonIndex === 0) {
-        // 开始休息
-        isWorkTime = false;
-        chrome.storage.local.get(['breakTime'], (result) => {
+  chrome.notifications.onButtonClicked.addListener(async (notificationId, buttonIndex) => {
+    try {
+      isClosedByButton = true;
+      if (isWorkTime) {
+        if (buttonIndex === 0) {
+          // 开始休息
+          isWorkTime = false;
+          const result = await chrome.storage.local.get(['breakTime']);
           const breakTime = validateAndConvertTime(result.breakTime, false);
           timeLeft = breakTime * 60;
-          updateIcon(isWorkTime);
-          broadcastState();
-          startTimer();
-        });
-      } else {
-        // 跳过休息，开始新番茄
-        isWorkTime = true;
-        chrome.storage.local.get(['workTime'], (result) => {
+          await updateIcon(isWorkTime);
+          await broadcastState();
+          await startTimer();
+        } else {
+          // 跳过休息，开始新番茄
+          isWorkTime = true;
+          const result = await chrome.storage.local.get(['workTime']);
           const workTime = validateAndConvertTime(result.workTime, true);
           timeLeft = workTime * 60;
-          updateIcon(isWorkTime);
-          broadcastState();
-          startTimer();
-        });
-      }
-    } else {
-      if (buttonIndex === 0) {
-        // 开始新番茄
-        isWorkTime = true;
-        chrome.storage.local.get(['workTime'], (result) => {
+          await updateIcon(isWorkTime);
+          await broadcastState();
+          await startTimer();
+        }
+      } else {
+        if (buttonIndex === 0) {
+          // 开始新番茄
+          isWorkTime = true;
+          const result = await chrome.storage.local.get(['workTime']);
           const workTime = validateAndConvertTime(result.workTime, true);
           timeLeft = workTime * 60;
-          updateIcon(isWorkTime);
-          broadcastState();
-          startTimer();
-        });
-      } else {
-        // 继续休息
-        isWorkTime = false;
-        chrome.storage.local.get(['breakTime'], (result) => {
+          await updateIcon(isWorkTime);
+          await broadcastState();
+          await startTimer();
+        } else {
+          // 继续休息
+          isWorkTime = false;
+          const result = await chrome.storage.local.get(['breakTime']);
           const breakTime = validateAndConvertTime(result.breakTime, false);
           timeLeft = breakTime * 60;
-          updateIcon(isWorkTime);
-          broadcastState();
-          startTimer();
-        });
+          await updateIcon(isWorkTime);
+          await broadcastState();
+          await startTimer();
+        }
       }
+      await chrome.notifications.clear(notificationId);
+    } catch (error) {
+      console.error('处理通知按钮点击时出错:', error);
     }
-    chrome.notifications.clear(notificationId);
   });
 }
 
-function resetCurrentTimer() {
+async function resetCurrentTimer() {
   isRunning = false;
   clearInterval(timer);
   
   // 根据当前模式重置时间
-  chrome.storage.local.get(['workTime', 'breakTime'], (result) => {
-    if (isWorkTime) {
-      timeLeft = validateAndConvertTime(result.workTime, true) * 60;
-    } else {
-      timeLeft = validateAndConvertTime(result.breakTime, false) * 60;
-    }
-    console.log('重置当前计时器 timeLeft:', timeLeft);
-    updateIcon(isWorkTime);
-    broadcastState();
-  });
+  const result = await chrome.storage.local.get(['workTime', 'breakTime']);
+  if (isWorkTime) {
+    timeLeft = validateAndConvertTime(result.workTime, true) * 60;
+  } else {
+    timeLeft = validateAndConvertTime(result.breakTime, false) * 60;
+  }
+  console.log('重置当前计时器 timeLeft:', timeLeft);
+  updateIcon(isWorkTime);
+  await broadcastState();
 } 
