@@ -184,9 +184,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         };
       case 'getStats':
         return processHistoryData();
-      case 'toggleTestData':
-        await chrome.storage.local.set({ testDataEnabled: message.enabled });
-        return processHistoryData();
+      case 'checkAndReset':
+        await checkAndResetPomodoroCount();
+        return { success: true };
     }
   };
 
@@ -200,7 +200,7 @@ async function startTimer() {
       isRunning = true;
       timer = setInterval(async () => {
         await updateTimer();
-      }, 1000);
+      }, 100);
       await broadcastState();
     }
   } catch (error) {
@@ -348,9 +348,23 @@ async function handleTimerComplete() {
   const notificationId = Date.now().toString();
   
   if (isWorkTime) {
-    const pomodoroResult = await chrome.storage.local.get(['completedPomodoros']);
-    const count = (pomodoroResult.completedPomodoros || 0) + 1;
-    await chrome.storage.local.set({ completedPomodoros: count });
+    // 更新完成的番茄数和历史记录
+    const today = new Date().toISOString().split('T')[0];
+    const historyKey = DEV_CONFIG.useTestData ? STORAGE_KEYS.TEST_HISTORY : STORAGE_KEYS.REAL_HISTORY;
+    
+    // 获取当前历史记录和今日完成数
+    const result = await chrome.storage.local.get([historyKey, 'completedPomodoros']);
+    const history = result[historyKey] || [];
+    const count = (result.completedPomodoros || 0) + 1;
+    
+    // 更新历史记录
+    history.push({ date: today });
+    
+    // 同时更新两个数据
+    await chrome.storage.local.set({ 
+      [historyKey]: history,
+      completedPomodoros: count 
+    });
     
     // 自动切换到休息时间
     isWorkTime = false;
@@ -371,6 +385,12 @@ async function handleTimerComplete() {
         requireInteraction: false
       });
     }
+
+    // 广播更新番茄数
+    chrome.runtime.sendMessage({
+      type: 'updateCompletedPomodoros',
+      count: count
+    });
   } else {
     // 自动切换到工作时间
     isWorkTime = true;
@@ -391,7 +411,33 @@ async function handleTimerComplete() {
       });
     }
   }
-} 
+}
+
+// 修改每日重置函数
+async function checkAndResetPomodoroCount() {
+  try {
+    const now = new Date();
+    const today = now.toDateString();
+    const historyKey = DEV_CONFIG.useTestData ? STORAGE_KEYS.TEST_HISTORY : STORAGE_KEYS.REAL_HISTORY;
+    
+    const result = await chrome.storage.local.get(['lastResetDate', historyKey]);
+    
+    if (!result.lastResetDate || result.lastResetDate !== today) {
+      // 如果是新的一天，重置番茄数量
+      // 计算今天已完成的番茄数
+      const todayStr = now.toISOString().split('T')[0];
+      const history = result[historyKey] || [];
+      const todayCount = history.filter(item => item.date === todayStr).length;
+      
+      await chrome.storage.local.set({
+        completedPomodoros: todayCount,
+        lastResetDate: today
+      });
+    }
+  } catch (error) {
+    console.error('重置番茄数量时出错:', error);
+  }
+}
 
 // 统计数据处理
 async function processHistoryData() {
@@ -462,18 +508,29 @@ function processMonthlyData(history, startDate) {
   const labels = [];
   const months = {};
   
+  // 先统计所有历史数据
   history.forEach(record => {
     const date = new Date(record.date);
     if (date >= startDate) {
-      const monthKey = date.toISOString().slice(0, 7);
+      // 使用年月作为键，避免时区问题
+      const monthKey = `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}`;
       months[monthKey] = (months[monthKey] || 0) + 1;
     }
   });
   
+  // 从当前月份开始，往前推12个月
+  const now = new Date();
+  const currentDate = new Date(now.getFullYear(), now.getMonth(), 1); // 当前月份的第一天
+  
   for (let i = 11; i >= 0; i--) {
-    const date = new Date(new Date().getFullYear(), new Date().getMonth() - i, 1);
-    const monthKey = date.toISOString().slice(0, 7);
-    labels.push(monthKey.slice(5)); // 只显示月份
+    const targetDate = new Date(currentDate);
+    targetDate.setMonth(currentDate.getMonth() - i);
+    
+    // 使用相同的键格式
+    const monthKey = `${targetDate.getFullYear()}-${(targetDate.getMonth() + 1).toString().padStart(2, '0')}`;
+    const monthLabel = (targetDate.getMonth() + 1).toString().padStart(2, '0');
+    
+    labels.push(monthLabel);
     monthlyData[11 - i] = months[monthKey] || 0;
   }
   
@@ -489,14 +546,13 @@ function getWeekNumber(date) {
   return d.getFullYear() + '-' + weekNo;
 }
 
-// 更新番茄历史记录
-function updatePomodoroHistory() {
+// 修改更新番茄历史记录函数为异步函数
+async function updatePomodoroHistory() {
   const today = new Date().toISOString().split('T')[0];
   const historyKey = DEV_CONFIG.useTestData ? STORAGE_KEYS.TEST_HISTORY : STORAGE_KEYS.REAL_HISTORY;
   
-  chrome.storage.local.get([historyKey], (result) => {
-    const history = result[historyKey] || [];
-    history.push({ date: today });
-    chrome.storage.local.set({ [historyKey]: history });
-  });
+  const result = await chrome.storage.local.get([historyKey]);
+  const history = result[historyKey] || [];
+  history.push({ date: today });
+  await chrome.storage.local.set({ [historyKey]: history });
 } 

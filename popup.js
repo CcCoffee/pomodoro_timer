@@ -46,20 +46,8 @@ function formatTimeDisplay(seconds) {
 }
 
 // 添加重置番茄数量的函数
-function checkAndResetPomodoroCount() {
-  chrome.storage.local.get(['lastResetDate'], (result) => {
-    const now = new Date();
-    const today = now.toDateString();
-    
-    if (!result.lastResetDate || result.lastResetDate !== today) {
-      // 如果是新的一天，重置番茄数量
-      chrome.storage.local.set({
-        completedPomodoros: 0,
-        lastResetDate: today
-      });
-      completedCount.textContent = '0';
-    }
-  });
+async function checkAndResetPomodoroCount() {
+  chrome.runtime.sendMessage({ type: 'checkAndReset' });
 }
 
 // 初始化
@@ -364,7 +352,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     updateStateVisuals(state.isWorkTime);
   } else if (message.type === 'updateCompletedPomodoros') {
     completedCount.textContent = message.count;
-    updatePomodoroHistory(); // 添加这行来更新历史记录
+    // 如果当前在统计页面，立即刷新统计数据
+    if (document.querySelector('.container-wrapper').classList.contains('show-stats')) {
+      loadAndDisplayStats();
+    }
   }
 });
   
