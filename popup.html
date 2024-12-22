@@ -19,6 +19,8 @@
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: #F8FAFC;
       color: var(--primary-color);
+      box-sizing: border-box;
+      min-width: 320px;
     }
 
     #container {
@@ -260,24 +262,51 @@
     /* 容器样式优化 */
     .container-wrapper {
       position: relative;
-      height: 520px; /* 固定高度，避免切换时的跳动 */
+      height: 500px; /* 固定高度，避免切换时的跳动 */
       overflow: hidden;
+      width: 100%;
     }
 
     #container, #stats-container {
       position: absolute;
       width: 100%;
+      height: 100%;
       transition: transform 0.3s ease, opacity 0.3s ease;
       opacity: 1;
+      box-sizing: border-box;
     }
 
     #container {
       transform: translateX(0);
+      width: 100%;
+      box-sizing: border-box;
     }
 
     #stats-container {
       transform: translateX(100%);
       opacity: 0;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+
+    /* 自定义滚动条样式 */
+    #stats-container::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    #stats-container::-webkit-scrollbar-track {
+      background: #F1F5F9;
+      border-radius: 3px;
+    }
+
+    #stats-container::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 3px;
+      transition: background 0.3s ease;
+    }
+
+    #stats-container::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
     }
 
     .show-stats #container {
@@ -297,6 +326,12 @@
       padding: 16px;
       margin-bottom: 12px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .chart-section:last-child {
+      margin-bottom: 4px;
     }
 
     .chart-title {
@@ -309,6 +344,7 @@
     .chart-container {
       height: 140px;
       margin-bottom: 0;
+      width: 100%;
     }
 
     /* 图表标题样式 */

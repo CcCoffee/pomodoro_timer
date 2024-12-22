@@ -60,12 +60,12 @@
     "description": "重置按钮文本"
   },
   "soundEnabled": {
-    "message": "声音",
+    "message": "声音提醒",
     "description": "声音启用设置标签"
   },
   "notificationEnabled": {
-    "message": "通知",
-    "description": "通知启用设置标签"
+    "message": "桌面通知",
+    "description": "桌面通知启用设置标签"
   },
   "completedPomodoros": {
     "message": "今日完成番茄数：",
