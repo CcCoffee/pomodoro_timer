@@ -210,7 +210,7 @@ function handleTimerComplete() {
       const count = (result.completedPomodoros || 0) + 1;
       chrome.storage.local.set({ completedPomodoros: count });
     });
-    
+    resetCurrentTimer();
     chrome.notifications.create(notificationId, {
       type: 'basic',
       iconUrl: chrome.runtime.getURL('images/icon128_work.png'),
@@ -223,6 +223,7 @@ function handleTimerComplete() {
       ]
     });
   } else {
+    resetCurrentTimer();
     chrome.notifications.create(notificationId, {
       type: 'basic',
       iconUrl: chrome.runtime.getURL('images/icon128_break.png'),
@@ -306,5 +307,22 @@ function setupNotificationListeners() {
       });
     }
     isClosedByButton = false;
+  });
+}
+
+function resetCurrentTimer() {
+  isRunning = false;
+  clearInterval(timer);
+  
+  // 根据当前模式重置时间
+  chrome.storage.local.get(['workTime', 'breakTime'], (result) => {
+    if (isWorkTime) {
+      timeLeft = validateAndConvertTime(result.workTime, true) * 60;
+    } else {
+      timeLeft = validateAndConvertTime(result.breakTime, false) * 60;
+    }
+    console.log('重置当前计时器 timeLeft:', timeLeft);
+    updateIcon(isWorkTime);
+    broadcastState();
   });
 } 
