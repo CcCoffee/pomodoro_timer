@@ -1,0 +1,74 @@
+{
+  "appName": {
+    "message": "番茄時鐘",
+    "description": "應用名稱"
+  },
+  "appDescription": {
+    "message": "一個簡單高效的番茄工作法計時器，助你提高工作效率",
+    "description": "應用描述"
+  },
+  "workTimeComplete": {
+    "message": "番茄時間完成！",
+    "description": "工作時間完成通知標題"
+  },
+  "breakTimeStarted": {
+    "message": "已自動開始休息時間。",
+    "description": "休息時間開始通知訊息"
+  },
+  "breakTimeComplete": {
+    "message": "休息時間結束！",
+    "description": "休息時間完成通知標題"
+  },
+  "workTimeStarted": {
+    "message": "已自動開始新的番茄時間。",
+    "description": "工作時間開始通知訊息"
+  },
+  "workStatus": {
+    "message": "工作時間",
+    "description": "工作時間狀態文本"
+  },
+  "breakStatus": {
+    "message": "休息時間",
+    "description": "休息時間狀態文本"
+  },
+  "minutes": {
+    "message": "分鐘",
+    "description": "分鐘單位文本"
+  },
+  "seconds": {
+    "message": "秒",
+    "description": "秒單位文本"
+  },
+  "workDuration": {
+    "message": "工作時長",
+    "description": "工作時長設置標籤"
+  },
+  "breakDuration": {
+    "message": "休息時長",
+    "description": "休息時長設置標籤"
+  },
+  "start": {
+    "message": "開始",
+    "description": "開始按鈕文本"
+  },
+  "pause": {
+    "message": "暫停",
+    "description": "暫停按鈕文本"
+  },
+  "reset": {
+    "message": "重置",
+    "description": "重置按鈕文本"
+  },
+  "soundEnabled": {
+    "message": "聲音",
+    "description": "聲音啟用設置標籤"
+  },
+  "notificationEnabled": {
+    "message": "通知",
+    "description": "通知啟用設置標籤"
+  },
+  "completedPomodoros": {
+    "message": "今日完成番茄數：",
+    "description": "完成番茄數計數器標籤"
+  }
+} 

@@ -1,0 +1,74 @@
+{
+  "appName": {
+    "message": "Pomodoro Timer",
+    "description": "The name of the application"
+  },
+  "appDescription": {
+    "message": "A simple and effective Pomodoro Timer to boost your productivity",
+    "description": "The description of the application"
+  },
+  "workTimeComplete": {
+    "message": "Pomodoro Complete!",
+    "description": "Work time completion notification title"
+  },
+  "breakTimeStarted": {
+    "message": "Break time has started automatically.",
+    "description": "Break time start notification message"
+  },
+  "breakTimeComplete": {
+    "message": "Break Time Complete!",
+    "description": "Break time completion notification title"
+  },
+  "workTimeStarted": {
+    "message": "New Pomodoro time has started automatically.",
+    "description": "Work time start notification message"
+  },
+  "workStatus": {
+    "message": "Work Time",
+    "description": "Work time status text"
+  },
+  "breakStatus": {
+    "message": "Break Time",
+    "description": "Break time status text"
+  },
+  "minutes": {
+    "message": "Min",
+    "description": "Minutes unit text"
+  },
+  "seconds": {
+    "message": "Sec",
+    "description": "Seconds unit text"
+  },
+  "workDuration": {
+    "message": "Work Duration",
+    "description": "Work duration setting label"
+  },
+  "breakDuration": {
+    "message": "Break Duration",
+    "description": "Break duration setting label"
+  },
+  "start": {
+    "message": "Start",
+    "description": "Start button text"
+  },
+  "pause": {
+    "message": "Pause",
+    "description": "Pause button text"
+  },
+  "reset": {
+    "message": "Reset",
+    "description": "Reset button text"
+  },
+  "soundEnabled": {
+    "message": "Sound",
+    "description": "Sound enabled setting label"
+  },
+  "notificationEnabled": {
+    "message": "Notifications",
+    "description": "Notification enabled setting label"
+  },
+  "completedPomodoros": {
+    "message": "Completed Pomodoros Today:",
+    "description": "Completed pomodoros counter label"
+  }
+} 

@@ -31,7 +31,7 @@ unitButtons.forEach(btn => {
 // 更新状态视觉效果
 function updateStateVisuals(isWork) {
   container.className = isWork ? 'work-mode' : 'break-mode';
-  statusText.textContent = isWork ? '工作时间' : '休息时间';
+  statusText.textContent = chrome.i18n.getMessage(isWork ? 'workStatus' : 'breakStatus');
 }
 
 // 格式化时间显示
@@ -63,8 +63,11 @@ function checkAndResetPomodoroCount() {
 }
 
 // 初始化
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   console.log('DOMContentLoaded');
+  // 初始化国际化文本
+  initializeI18n();
+  
   // 检查是否需要重置番茄数量
   checkAndResetPomodoroCount();
   
@@ -129,6 +132,42 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.local.set({ notificationEnabled: e.target.checked });
   });
 });
+
+function initializeI18n() {
+  // 状态文本
+  document.getElementById('status-text').textContent = chrome.i18n.getMessage('workStatus');
+  
+  // 时间单位选择器
+  const unitButtons = document.querySelectorAll('.unit-btn');
+  unitButtons[0].textContent = chrome.i18n.getMessage('minutes');
+  unitButtons[1].textContent = chrome.i18n.getMessage('seconds');
+  
+  // 设置标签
+  document.getElementById('work-duration-label').textContent = chrome.i18n.getMessage('workDuration');
+  document.getElementById('break-duration-label').textContent = chrome.i18n.getMessage('breakDuration');
+  document.getElementById('sound-label').textContent = chrome.i18n.getMessage('soundEnabled');
+  document.getElementById('notification-label').textContent = chrome.i18n.getMessage('notificationEnabled');
+  
+  // 分钟标签
+  const minutesLabels = document.querySelectorAll('.minutes-label');
+  minutesLabels.forEach(label => {
+    label.textContent = chrome.i18n.getMessage('minutes');
+  });
+  
+  // 按钮文本
+  document.getElementById('start').textContent = chrome.i18n.getMessage('start');
+  document.getElementById('pause').textContent = chrome.i18n.getMessage('pause');
+  document.getElementById('reset').textContent = chrome.i18n.getMessage('reset');
+  
+  // 完成计数文本
+  document.getElementById('completed-text').textContent = chrome.i18n.getMessage('completedPomodoros');
+}
+
+// 更新状态文本的函数
+function updateStatusText(isWorkTime) {
+  const statusText = document.getElementById('status-text');
+  statusText.textContent = chrome.i18n.getMessage(isWorkTime ? 'workStatus' : 'breakStatus');
+}
 
 startButton.addEventListener('click', () => {
   chrome.runtime.sendMessage({ type: 'startTimer' });

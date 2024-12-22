@@ -39,7 +39,6 @@ chrome.runtime.onInstalled.addListener(async () => {
     const result = await chrome.storage.local.get(['workTime', 'soundEnabled', 'notificationEnabled']);
     const workTime = validateAndConvertTime(result.workTime, true);
     timeLeft = workTime * 60;
-    console.log('初始化设置 timeLeft:', timeLeft);
     isWorkTime = true;
     isRunning = false;
     
@@ -133,7 +132,6 @@ async function resetTimer() {
   const result = await chrome.storage.local.get(['workTime']);
   const workTime = validateAndConvertTime(result.workTime, true);
   timeLeft = workTime * 60;
-  console.log('重置计时器设置 timeLeft:', timeLeft);
   await broadcastState();
 }
 
@@ -141,7 +139,6 @@ async function updateTimer() {
   try {
     if (timeLeft > 0) {
       timeLeft--;
-      console.log('更新计时器设置 timeLeft:', timeLeft);
       await broadcastState();
     } else {
       await handleTimerComplete();
@@ -174,6 +171,7 @@ async function broadcastState() {
   } else {
     const minutes = Math.ceil((timeLeft || 0) / 60);
     await chrome.action.setBadgeText({ text: minutes.toString() });
+    await chrome.action.setBadgeTextColor({ color: '#FFFFFF' });
     await chrome.action.setBadgeBackgroundColor({ 
       color: isWorkTime ? '#e74c3c' : '#2ecc71'
     });
@@ -189,11 +187,9 @@ async function prepareNextTimer() {
     if (isWorkTime) {
       const breakTime = validateAndConvertTime(result.breakTime, false);
       timeLeft = breakTime * 60;
-      console.log('准备休息时间设置 timeLeft:', timeLeft);
     } else {
       const workTime = validateAndConvertTime(result.workTime, true);
       timeLeft = workTime * 60;
-      console.log('准备工作时间设置 timeLeft:', timeLeft);
     }
     await updateIcon(isWorkTime);
     await broadcastState();
@@ -272,8 +268,8 @@ async function handleTimerComplete() {
       await chrome.notifications.create(notificationId, {
         type: 'basic',
         iconUrl: chrome.runtime.getURL('images/icon128_break.png'),
-        title: '番茄时间完成！',
-        message: '已自动开始休息时间。',
+        title: chrome.i18n.getMessage('workTimeComplete'),
+        message: chrome.i18n.getMessage('breakTimeStarted'),
         requireInteraction: false
       });
     }
@@ -291,8 +287,8 @@ async function handleTimerComplete() {
       await chrome.notifications.create(notificationId, {
         type: 'basic',
         iconUrl: chrome.runtime.getURL('images/icon128_work.png'),
-        title: '休息时间结束！',
-        message: '已自动开始新的番茄时间。',
+        title: chrome.i18n.getMessage('breakTimeComplete'),
+        message: chrome.i18n.getMessage('workTimeStarted'),
         requireInteraction: false
       });
     }

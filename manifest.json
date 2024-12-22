@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "番茄时钟",
+  "name": "__MSG_appName__",
   "version": "1.0",
-  "description": "一个简单的番茄工作法计时器",
+  "description": "__MSG_appDescription__",
+  "default_locale": "zh_CN",
   "permissions": [
     "storage",
     "notifications",
