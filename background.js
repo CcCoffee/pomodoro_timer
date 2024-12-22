@@ -1,13 +1,13 @@
 let timer;
-let timeLeft = 25 * 60;
+let timeLeft;
 let isRunning = false;
 let isWorkTime = true;
 
 // 添加常量定义
 const DEFAULT_WORK_TIME = 25;
 const DEFAULT_BREAK_TIME = 5;
-const WORK_END_SOUND_URL = 'sounds/work_end.mp3';
-const BREAK_END_SOUND_URL = 'sounds/break_end.mp3';
+const WORK_END_SOUND_URL = 'sounds/notification.mp3';
+const BREAK_END_SOUND_URL = 'sounds/notification.mp3';
 const DEFAULT_SETTINGS = {
   soundEnabled: true,
   notificationEnabled: true
