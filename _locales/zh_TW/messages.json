@@ -40,11 +40,11 @@
     "description": "秒單位文字"
   },
   "workDuration": {
-    "message": "工作時長",
+    "message": "工作時長（分鐘）",
     "description": "工作時長設定標籤"
   },
   "breakDuration": {
-    "message": "休息時長",
+    "message": "休息時長（分鐘）",
     "description": "休息時長設定標籤"
   },
   "start": {
@@ -60,12 +60,12 @@
     "description": "重置按鈕文字"
   },
   "soundEnabled": {
-    "message": "聲音",
-    "description": "聲音啟用設定標籤"
+    "message": "聲音提醒",
+    "description": "聲音提醒啟用設定標籤"
   },
   "notificationEnabled": {
-    "message": "通知",
-    "description": "通知啟用設定標籤"
+    "message": "桌面通知",
+    "description": "桌面通知啟用設定標籤"
   },
   "completedPomodoros": {
     "message": "今日完成番茄數：",
