@@ -68,7 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 检查是否需要重置番茄数量
   checkAndResetPomodoroCount();
   
-  chrome.storage.local.get(['workTime', 'breakTime', 'completedPomodoros', 'timeUnit'], (result) => {
+  chrome.storage.local.get(['workTime', 'breakTime', 'completedPomodoros', 'timeUnit', 'soundEnabled'], (result) => {
     console.log('get storage', result);
     if (result.workTime) workTimeInput.value = result.workTime;
     if (result.breakTime) breakTimeInput.value = result.breakTime;
@@ -79,6 +79,10 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
     completedCount.textContent = result.completedPomodoros || 0;
+    
+    // 获取声音设置
+    const soundEnabled = result.soundEnabled !== undefined ? result.soundEnabled : true;
+    document.getElementById('sound-enabled').checked = soundEnabled;
     
     chrome.runtime.sendMessage({ type: 'getState' }, (response) => {
       if (response) {
@@ -113,23 +117,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 获取声音设置
-  chrome.storage.local.get(['soundEnabled', 'autoSwitch'], (result) => {
-    const soundEnabled = result.soundEnabled !== undefined ? result.soundEnabled : true;
-    document.getElementById('sound-enabled').checked = soundEnabled;
-    
-    const autoSwitch = result.autoSwitch !== undefined ? result.autoSwitch : true;
-    document.getElementById('auto-switch').checked = autoSwitch;
-  });
-
   // 监听声音设置变化
   document.getElementById('sound-enabled').addEventListener('change', (e) => {
     chrome.storage.local.set({ soundEnabled: e.target.checked });
-  });
-
-  // 监听自动轮替设置变化
-  document.getElementById('auto-switch').addEventListener('change', (e) => {
-    chrome.storage.local.set({ autoSwitch: e.target.checked });
   });
 });
 
