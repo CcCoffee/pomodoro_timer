@@ -160,6 +160,17 @@ async function broadcastState() {
     }
   }
   
+  // 更新badge
+  if (!isRunning) {
+    await chrome.action.setBadgeText({ text: '' });
+  } else {
+    const minutes = Math.floor((timeLeft || 0) / 60);
+    await chrome.action.setBadgeText({ text: minutes.toString() });
+    await chrome.action.setBadgeBackgroundColor({ 
+      color: isWorkTime ? '#e74c3c' : '#2ecc71'
+    });
+  }
+  
   updateIcon(isWorkTime);
   await saveState();
 }
