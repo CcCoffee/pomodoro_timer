@@ -31,7 +31,7 @@ function updateIcon(isWork) {
 
 // 初始化状态
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.local.get(['workTime', 'soundEnabled'], (result) => {
+  chrome.storage.local.get(['workTime', 'soundEnabled', 'autoSwitch'], (result) => {
     const workTime = validateAndConvertTime(result.workTime, true);
     timeLeft = workTime * 60;
     console.log('初始化设置 timeLeft:', timeLeft);
@@ -40,6 +40,10 @@ chrome.runtime.onInstalled.addListener(() => {
     // 如果声音设置不存在，默认开启
     if (result.soundEnabled === undefined) {
       chrome.storage.local.set({ soundEnabled: true });
+    }
+    // 如果自动轮替设置不存在，默认开启
+    if (result.autoSwitch === undefined) {
+      chrome.storage.local.set({ autoSwitch: true });
     }
     updateIcon(isWorkTime);
     broadcastState();
@@ -88,7 +92,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 function startTimer() {
   if (!isRunning) {
     isRunning = true;
-    timer = setInterval(updateTimer, 10);
+    timer = setInterval(updateTimer, 100);
     broadcastState();
   }
 }
@@ -205,39 +209,86 @@ function handleTimerComplete() {
   
   const notificationId = Date.now().toString();
   
-  if (isWorkTime) {
-    chrome.storage.local.get(['completedPomodoros'], (result) => {
-      const count = (result.completedPomodoros || 0) + 1;
-      chrome.storage.local.set({ completedPomodoros: count }).then(() => {
-        chrome.runtime.sendMessage({ type: 'updateCompletedPomodoros', count });
+  chrome.storage.local.get(['autoSwitch'], async (result) => {
+    const autoSwitch = result.autoSwitch ?? true;
+    
+    if (isWorkTime) {
+      chrome.storage.local.get(['completedPomodoros'], (result) => {
+        const count = (result.completedPomodoros || 0) + 1;
+        chrome.storage.local.set({ completedPomodoros: count }).then(() => {
+          chrome.runtime.sendMessage({ type: 'updateCompletedPomodoros', count });
+        });
       });
-    });
-    resetCurrentTimer();
-    chrome.notifications.create(notificationId, {
-      type: 'basic',
-      iconUrl: chrome.runtime.getURL('images/icon128_work.png'),
-      title: '番茄时间完成！',
-      message: '恭喜完成一个番茄时间！点击此通知开始休息时间。',
-      requireInteraction: true,
-      buttons: [
-        { title: '开始休息' },
-        { title: '跳过休息' }
-      ]
-    });
-  } else {
-    resetCurrentTimer();
-    chrome.notifications.create(notificationId, {
-      type: 'basic',
-      iconUrl: chrome.runtime.getURL('images/icon128_break.png'),
-      title: '休息时间结束！',
-      message: '休息结束了！点击此通知开始新的番茄时间。',
-      requireInteraction: true,
-      buttons: [
-        { title: '开始新番茄' },
-        { title: '继续休息' }
-      ]
-    });
-  }
+      resetCurrentTimer();
+      
+      if (autoSwitch) {
+        // 自动开始休息时间
+        isWorkTime = false;
+        chrome.storage.local.get(['breakTime'], (result) => {
+          const breakTime = validateAndConvertTime(result.breakTime, false);
+          timeLeft = breakTime * 60;
+          updateIcon(isWorkTime);
+          broadcastState();
+          startTimer();
+        });
+        // 显示非阻塞通知
+        chrome.notifications.create(notificationId, {
+          type: 'basic',
+          iconUrl: chrome.runtime.getURL('images/icon128_work.png'),
+          title: '番茄时间完成！',
+          message: '已自动开始休息时间。',
+          requireInteraction: false
+        });
+      } else {
+        // 显示需要用户交互的通知
+        chrome.notifications.create(notificationId, {
+          type: 'basic',
+          iconUrl: chrome.runtime.getURL('images/icon128_work.png'),
+          title: '番茄时间完成！',
+          message: '恭喜完成一个番茄时间！点击此通知开始休息时间。',
+          requireInteraction: true,
+          buttons: [
+            { title: '开始休息' },
+            { title: '跳过休息' }
+          ]
+        });
+      }
+    } else {
+      resetCurrentTimer();
+      
+      if (autoSwitch) {
+        // 自动开始新的工作时间
+        isWorkTime = true;
+        chrome.storage.local.get(['workTime'], (result) => {
+          timeLeft = validateAndConvertTime(result.workTime, true) * 60;
+          updateIcon(isWorkTime);
+          broadcastState();
+          startTimer();
+        });
+        // 显示非阻塞通知
+        chrome.notifications.create(notificationId, {
+          type: 'basic',
+          iconUrl: chrome.runtime.getURL('images/icon128_break.png'),
+          title: '休息时间结束！',
+          message: '已自动开始新的番茄时间。',
+          requireInteraction: false
+        });
+      } else {
+        // 显示需要用户交互的通知
+        chrome.notifications.create(notificationId, {
+          type: 'basic',
+          iconUrl: chrome.runtime.getURL('images/icon128_break.png'),
+          title: '休息时间结束！',
+          message: '休息结束了！点击此通知开始新的番茄时间。',
+          requireInteraction: true,
+          buttons: [
+            { title: '开始新番茄' },
+            { title: '继续休息' }
+          ]
+        });
+      }
+    }
+  });
 }
 
 function setupNotificationListeners() {

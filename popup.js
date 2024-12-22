@@ -114,14 +114,22 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // 获取声音设置
-  chrome.storage.local.get(['soundEnabled'], (result) => {
+  chrome.storage.local.get(['soundEnabled', 'autoSwitch'], (result) => {
     const soundEnabled = result.soundEnabled !== undefined ? result.soundEnabled : true;
     document.getElementById('sound-enabled').checked = soundEnabled;
+    
+    const autoSwitch = result.autoSwitch !== undefined ? result.autoSwitch : true;
+    document.getElementById('auto-switch').checked = autoSwitch;
   });
 
   // 监听声音设置变化
   document.getElementById('sound-enabled').addEventListener('change', (e) => {
     chrome.storage.local.set({ soundEnabled: e.target.checked });
+  });
+
+  // 监听自动轮替设置变化
+  document.getElementById('auto-switch').addEventListener('change', (e) => {
+    chrome.storage.local.set({ autoSwitch: e.target.checked });
   });
 });
 
