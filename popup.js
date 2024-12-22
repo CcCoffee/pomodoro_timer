@@ -71,7 +71,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 检查是否需要重置番茄数量
   checkAndResetPomodoroCount();
   
-  chrome.storage.local.get(['workTime', 'breakTime', 'completedPomodoros', 'timeUnit', 'soundEnabled', 'notificationEnabled'], (result) => {
+  chrome.storage.local.get([
+    'workTime', 
+    'breakTime', 
+    'completedPomodoros', 
+    'timeUnit', 
+    'soundEnabled', 
+    'notificationEnabled'
+  ], (result) => {
     console.log('get storage', result);
     if (result.workTime) workTimeInput.value = result.workTime;
     if (result.breakTime) breakTimeInput.value = result.breakTime;
@@ -359,4 +366,5 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     completedCount.textContent = message.count;
     updatePomodoroHistory(); // 添加这行来更新历史记录
   }
-}); 
+});
+  

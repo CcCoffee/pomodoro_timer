@@ -13,6 +13,22 @@ const DEFAULT_SETTINGS = {
   notificationEnabled: true
 };
 
+// 测试数据配置（仅供开发使用）
+const DEV_CONFIG = {
+  useTestData: false,  // 设置为 true 时使用测试数据
+  testDataRanges: {
+    daily: { min: 0, max: 7 },    // 近30天每天0-7个番茄钟
+    weekly: { min: 0, max: 5 },   // 30-180天每天0-5个番茄钟
+    yearly: { min: 0, max: 3 }    // 180-365天每天0-3个番茄钟
+  }
+};
+
+// 存储键名常量
+const STORAGE_KEYS = {
+  REAL_HISTORY: 'pomodoroHistory',
+  TEST_HISTORY: 'pomodoroTestHistory'
+};
+
 // 添加验证函数
 function validateAndConvertTime(minutes, isWorkTime = true) {
   let value = parseInt(minutes);
@@ -33,21 +49,98 @@ function updateIcon(isWork) {
   });
 }
 
-// 初始化状态
+// 在 chrome.runtime.onInstalled.addListener 之前添加测试数据初始化函数
+function initializeTestData() {
+  const today = new Date();
+  const testData = [];
+  
+  // 生成过去30天的数据
+  for (let i = 0; i < 30; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    const count = Math.floor(Math.random() * 
+      (DEV_CONFIG.testDataRanges.daily.max - DEV_CONFIG.testDataRanges.daily.min + 1)) 
+      + DEV_CONFIG.testDataRanges.daily.min;
+    
+    for (let j = 0; j < count; j++) {
+      testData.push({
+        date: date.toISOString().split('T')[0]
+      });
+    }
+  }
+  
+  // 生成过去半年的额外数据
+  for (let i = 30; i < 180; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    const count = Math.floor(Math.random() * 
+      (DEV_CONFIG.testDataRanges.weekly.max - DEV_CONFIG.testDataRanges.weekly.min + 1)) 
+      + DEV_CONFIG.testDataRanges.weekly.min;
+    
+    for (let j = 0; j < count; j++) {
+      testData.push({
+        date: date.toISOString().split('T')[0]
+      });
+    }
+  }
+  
+  // 生成剩余的一年数据
+  for (let i = 180; i < 365; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() - i);
+    const count = Math.floor(Math.random() * 
+      (DEV_CONFIG.testDataRanges.yearly.max - DEV_CONFIG.testDataRanges.yearly.min + 1)) 
+      + DEV_CONFIG.testDataRanges.yearly.min;
+    
+    for (let j = 0; j < count; j++) {
+      testData.push({
+        date: date.toISOString().split('T')[0]
+      });
+    }
+  }
+  
+  return testData;
+}
+
+// 修改 chrome.runtime.onInstalled 监听器
 chrome.runtime.onInstalled.addListener(async () => {
   try {
-    const result = await chrome.storage.local.get(['workTime', 'soundEnabled', 'notificationEnabled']);
+    const result = await chrome.storage.local.get([
+      'workTime', 
+      'soundEnabled', 
+      'notificationEnabled'
+    ]);
+    
     const workTime = validateAndConvertTime(result.workTime, true);
     timeLeft = workTime * 60;
     isWorkTime = true;
     isRunning = false;
     
-    // 如果声音和通知设置不存在，设置默认值
-    if (result.soundEnabled === undefined || result.notificationEnabled === undefined) {
-      await chrome.storage.local.set({
-        soundEnabled: DEFAULT_SETTINGS.soundEnabled,
-        notificationEnabled: DEFAULT_SETTINGS.notificationEnabled
-      });
+    // 设置默认值
+    const defaultValues = {
+      soundEnabled: DEFAULT_SETTINGS.soundEnabled,
+      notificationEnabled: DEFAULT_SETTINGS.notificationEnabled
+    };
+
+    // 只设置未定义的值
+    const valuesToSet = {};
+    for (const [key, value] of Object.entries(defaultValues)) {
+      if (result[key] === undefined) {
+        valuesToSet[key] = value;
+      }
+    }
+
+    if (Object.keys(valuesToSet).length > 0) {
+      await chrome.storage.local.set(valuesToSet);
+    }
+    
+    // 初始化测试数据（如果启用）
+    if (DEV_CONFIG.useTestData) {
+      const testHistory = await chrome.storage.local.get([STORAGE_KEYS.TEST_HISTORY]);
+      if (!testHistory[STORAGE_KEYS.TEST_HISTORY]) {
+        const initialTestData = initializeTestData();
+        await chrome.storage.local.set({ [STORAGE_KEYS.TEST_HISTORY]: initialTestData });
+      }
     }
     
     await updateIcon(isWorkTime);
@@ -90,6 +183,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           isWorkTime
         };
       case 'getStats':
+        return processHistoryData();
+      case 'toggleTestData':
+        await chrome.storage.local.set({ testDataEnabled: message.enabled });
         return processHistoryData();
     }
   };
@@ -304,17 +400,21 @@ async function processHistoryData() {
   const sixMonthsAgo = new Date(now.getTime() - 180 * 24 * 60 * 60 * 1000);
   const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
 
-  const result = await new Promise((resolve) => {
-    chrome.storage.local.get(['pomodoroHistory'], (data) => {
-      const history = data.pomodoroHistory || [];
-      resolve(history);
-    });
-  });
+  // 根据配置决定使用哪个数据源
+  const historyKey = DEV_CONFIG.useTestData ? STORAGE_KEYS.TEST_HISTORY : STORAGE_KEYS.REAL_HISTORY;
+  const result = await chrome.storage.local.get([historyKey]);
+  let history = result[historyKey] || [];
+  
+  // 如果是测试数据且没有初始化过，则初始化
+  if (DEV_CONFIG.useTestData && history.length === 0) {
+    history = initializeTestData();
+    await chrome.storage.local.set({ [STORAGE_KEYS.TEST_HISTORY]: history });
+  }
 
   return {
-    daily: processDailyData(result, thirtyDaysAgo),
-    weekly: processWeeklyData(result, sixMonthsAgo),
-    monthly: processMonthlyData(result, oneYearAgo)
+    daily: processDailyData(history, thirtyDaysAgo),
+    weekly: processWeeklyData(history, sixMonthsAgo),
+    monthly: processMonthlyData(history, oneYearAgo)
   };
 }
 
@@ -392,9 +492,11 @@ function getWeekNumber(date) {
 // 更新番茄历史记录
 function updatePomodoroHistory() {
   const today = new Date().toISOString().split('T')[0];
-  chrome.storage.local.get(['pomodoroHistory'], (result) => {
-    const history = result.pomodoroHistory || [];
+  const historyKey = DEV_CONFIG.useTestData ? STORAGE_KEYS.TEST_HISTORY : STORAGE_KEYS.REAL_HISTORY;
+  
+  chrome.storage.local.get([historyKey], (result) => {
+    const history = result[historyKey] || [];
     history.push({ date: today });
-    chrome.storage.local.set({ pomodoroHistory: history });
+    chrome.storage.local.set({ [historyKey]: history });
   });
 } 
