@@ -301,21 +301,19 @@ function setupNotificationListeners() {
         chrome.storage.local.get(['breakTime'], (result) => {
           const breakTime = validateAndConvertTime(result.breakTime, false);
           timeLeft = breakTime * 60;
-          console.log('准备休息时间设置 timeLeft:', timeLeft);
           updateIcon(isWorkTime);
           broadcastState();
-        });
-        startTimer();
-      } else {
-        // 跳过休息
-        chrome.storage.local.get(['workTime'], (result) => {
-          isWorkTime = true;
-          timeLeft = (result.workTime || 25) * 60;
-          console.log('跳过休息设置 timeLeft:', timeLeft);
-          updateIcon(isWorkTime);
           startTimer();
-          isRunning = true;
+        });
+      } else {
+        // 跳过休息，开始新番茄
+        isWorkTime = true;
+        chrome.storage.local.get(['workTime'], (result) => {
+          const workTime = validateAndConvertTime(result.workTime, true);
+          timeLeft = workTime * 60;
+          updateIcon(isWorkTime);
           broadcastState();
+          startTimer();
         });
       }
     } else {
@@ -323,43 +321,25 @@ function setupNotificationListeners() {
         // 开始新番茄
         isWorkTime = true;
         chrome.storage.local.get(['workTime'], (result) => {
-          timeLeft = (result.workTime || 25) * 60;
-          console.log('开始新番茄设置 timeLeft:', timeLeft);
+          const workTime = validateAndConvertTime(result.workTime, true);
+          timeLeft = workTime * 60;
           updateIcon(isWorkTime);
           broadcastState();
           startTimer();
         });
       } else {
         // 继续休息
+        isWorkTime = false;
         chrome.storage.local.get(['breakTime'], (result) => {
-          isWorkTime = false;
-          timeLeft = (result.breakTime || 5) * 60;
-          console.log('继续休息设置 timeLeft:', timeLeft);
+          const breakTime = validateAndConvertTime(result.breakTime, false);
+          timeLeft = breakTime * 60;
           updateIcon(isWorkTime);
-          startTimer();
-          isRunning = true;
           broadcastState();
+          startTimer();
         });
       }
     }
     chrome.notifications.clear(notificationId);
-  });
-
-  // 添加通知关闭的监听器
-  chrome.notifications.onClosed.addListener((notificationId) => {
-    if (!isClosedByButton) {
-      // 当通知被关闭时，重置到工作状态
-      isWorkTime = true;
-      chrome.storage.local.get(['workTime'], (result) => {
-        timeLeft = (result.workTime || 25) * 60;
-        console.log('通知关闭重置 timeLeft:', timeLeft);
-        isRunning = false;
-        updateIcon(isWorkTime);
-        saveState();
-        broadcastState();
-      });
-    }
-    isClosedByButton = false;
   });
 }
 
