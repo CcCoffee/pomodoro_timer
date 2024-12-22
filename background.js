@@ -10,10 +10,10 @@ const DEFAULT_BREAK_TIME = 5;
 const NOTIFICATION_SOUND_URL = 'sounds/notification.mp3';
 
 // 添加验证函数
-function validateAndConvertTime(minutes) {
+function validateAndConvertTime(minutes, isWorkTime = true) {
   let value = parseInt(minutes);
   if (isNaN(value) || value < 1) {
-    return DEFAULT_WORK_TIME;
+    return isWorkTime ? DEFAULT_WORK_TIME : DEFAULT_BREAK_TIME;
   }
   return Math.floor(Math.min(Math.max(value, 1), 60));
 }
@@ -32,7 +32,7 @@ function updateIcon(isWork) {
 // 初始化状态
 chrome.runtime.onInstalled.addListener(() => {
   chrome.storage.local.get(['workTime', 'soundEnabled'], (result) => {
-    const workTime = validateAndConvertTime(result.workTime);
+    const workTime = validateAndConvertTime(result.workTime, true);
     timeLeft = workTime * 60;
     console.log('初始化设置 timeLeft:', timeLeft);
     isWorkTime = true;
@@ -88,7 +88,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 function startTimer() {
   if (!isRunning) {
     isRunning = true;
-    timer = setInterval(updateTimer, 1000);
+    timer = setInterval(updateTimer, 10);
     broadcastState();
   }
 }
@@ -108,7 +108,7 @@ function resetTimer() {
   updateIcon(isWorkTime);
   
   chrome.storage.local.get(['workTime'], (result) => {
-    const workTime = validateAndConvertTime(result.workTime);
+    const workTime = validateAndConvertTime(result.workTime, true);
     timeLeft = workTime * 60;
     console.log('重置计时器设置 timeLeft:', timeLeft);
     broadcastState();
@@ -146,11 +146,11 @@ function broadcastState() {
 function prepareNextTimer() {
   chrome.storage.local.get(['workTime', 'breakTime'], (result) => {
     if (isWorkTime) {
-      const breakTime = validateAndConvertTime(result.breakTime);
+      const breakTime = validateAndConvertTime(result.breakTime, false);
       timeLeft = breakTime * 60;
       console.log('准备休息时间设置 timeLeft:', timeLeft);
     } else {
-      const workTime = validateAndConvertTime(result.workTime);
+      const workTime = validateAndConvertTime(result.workTime, true);
       timeLeft = workTime * 60;
       console.log('准备工作时间设置 timeLeft:', timeLeft);
     }
@@ -244,7 +244,13 @@ function setupNotificationListeners() {
       if (buttonIndex === 0) {
         // 开始休息
         isWorkTime = false;
-        prepareNextTimer();
+        chrome.storage.local.get(['breakTime'], (result) => {
+          const breakTime = validateAndConvertTime(result.breakTime, false);
+          timeLeft = breakTime * 60;
+          console.log('准备休息时间设置 timeLeft:', timeLeft);
+          updateIcon(isWorkTime);
+          broadcastState();
+        });
         startTimer();
       } else {
         // 跳过休息
