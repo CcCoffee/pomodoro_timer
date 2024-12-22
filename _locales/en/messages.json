@@ -40,11 +40,11 @@
     "description": "Seconds unit text"
   },
   "workDuration": {
-    "message": "Work Duration",
+    "message": "Work Duration (min)",
     "description": "Work duration setting label"
   },
   "breakDuration": {
-    "message": "Break Duration",
+    "message": "Break Duration (min)",
     "description": "Break duration setting label"
   },
   "start": {

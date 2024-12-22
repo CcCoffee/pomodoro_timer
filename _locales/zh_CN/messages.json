@@ -40,11 +40,11 @@
     "description": "秒单位文本"
   },
   "workDuration": {
-    "message": "工作时长",
+    "message": "工作时长（分钟）",
     "description": "工作时长设置标签"
   },
   "breakDuration": {
-    "message": "休息时长",
+    "message": "休息时长（分钟）",
     "description": "休息时长设置标签"
   },
   "start": {
