@@ -7,6 +7,10 @@ let isWorkTime = true;
 const DEFAULT_WORK_TIME = 25;
 const DEFAULT_BREAK_TIME = 5;
 const NOTIFICATION_SOUND_URL = 'sounds/notification.mp3';
+const DEFAULT_SETTINGS = {
+  soundEnabled: true,
+  notificationEnabled: true
+};
 
 // 添加验证函数
 function validateAndConvertTime(minutes, isWorkTime = true) {
@@ -31,16 +35,19 @@ function updateIcon(isWork) {
 // 初始化状态
 chrome.runtime.onInstalled.addListener(async () => {
   try {
-    const result = await chrome.storage.local.get(['workTime', 'soundEnabled']);
+    const result = await chrome.storage.local.get(['workTime', 'soundEnabled', 'notificationEnabled']);
     const workTime = validateAndConvertTime(result.workTime, true);
     timeLeft = workTime * 60;
     console.log('初始化设置 timeLeft:', timeLeft);
     isWorkTime = true;
     isRunning = false;
     
-    // 如果声音设置不存在，默认开启
-    if (result.soundEnabled === undefined) {
-      await chrome.storage.local.set({ soundEnabled: true });
+    // 如果声音和通知设置不存在，设置默认值
+    if (result.soundEnabled === undefined || result.notificationEnabled === undefined) {
+      await chrome.storage.local.set({
+        soundEnabled: DEFAULT_SETTINGS.soundEnabled,
+        notificationEnabled: DEFAULT_SETTINGS.notificationEnabled
+      });
     }
     
     await updateIcon(isWorkTime);
@@ -235,8 +242,13 @@ async function handleTimerComplete() {
   clearInterval(timer);
   isRunning = false;
   
-  // 播放提示音
-  await playNotificationSound();
+  // 获取通知和声音设置
+  const settings = await chrome.storage.local.get(['soundEnabled', 'notificationEnabled']);
+  
+  // 根据设置播放提示音
+  if (settings.soundEnabled) {
+    await playNotificationSound();
+  }
   
   const notificationId = Date.now().toString();
   
@@ -254,14 +266,16 @@ async function handleTimerComplete() {
     await broadcastState();
     await startTimer();
     
-    // 显示非阻塞通知
-    await chrome.notifications.create(notificationId, {
-      type: 'basic',
-      iconUrl: chrome.runtime.getURL('images/icon128_break.png'),
-      title: '番茄时间完成！',
-      message: '已自动开始休息时间。',
-      requireInteraction: false
-    });
+    // 根据设置显示通知
+    if (settings.notificationEnabled) {
+      await chrome.notifications.create(notificationId, {
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('images/icon128_break.png'),
+        title: '番茄时间完成！',
+        message: '已自动开始休息时间。',
+        requireInteraction: false
+      });
+    }
   } else {
     // 自动切换到工作时间
     isWorkTime = true;
@@ -271,13 +285,15 @@ async function handleTimerComplete() {
     await broadcastState();
     await startTimer();
     
-    // 显示非阻塞通知
-    await chrome.notifications.create(notificationId, {
-      type: 'basic',
-      iconUrl: chrome.runtime.getURL('images/icon128_work.png'),
-      title: '休息时间结束！',
-      message: '已自动开始新的番茄时间。',
-      requireInteraction: false
-    });
+    // 根据设置显示通知
+    if (settings.notificationEnabled) {
+      await chrome.notifications.create(notificationId, {
+        type: 'basic',
+        iconUrl: chrome.runtime.getURL('images/icon128_work.png'),
+        title: '休息时间结束！',
+        message: '已自动开始新的番茄时间。',
+        requireInteraction: false
+      });
+    }
   }
 } 
