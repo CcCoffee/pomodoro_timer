@@ -6,7 +6,8 @@ let isWorkTime = true;
 // 添加常量定义
 const DEFAULT_WORK_TIME = 25;
 const DEFAULT_BREAK_TIME = 5;
-const NOTIFICATION_SOUND_URL = 'sounds/notification.mp3';
+const WORK_END_SOUND_URL = 'sounds/work_end.mp3';
+const BREAK_END_SOUND_URL = 'sounds/break_end.mp3';
 const DEFAULT_SETTINGS = {
   soundEnabled: true,
   notificationEnabled: true
@@ -102,7 +103,7 @@ async function startTimer() {
       isRunning = true;
       timer = setInterval(async () => {
         await updateTimer();
-      }, 100);
+      }, 1000);
       await broadcastState();
     }
   } catch (error) {
@@ -171,7 +172,7 @@ async function broadcastState() {
   if (!isRunning) {
     await chrome.action.setBadgeText({ text: '' });
   } else {
-    const minutes = Math.floor((timeLeft || 0) / 60);
+    const minutes = Math.ceil((timeLeft || 0) / 60);
     await chrome.action.setBadgeText({ text: minutes.toString() });
     await chrome.action.setBadgeBackgroundColor({ 
       color: isWorkTime ? '#e74c3c' : '#2ecc71'
@@ -215,7 +216,7 @@ async function createOffscreenDocument() {
   });
 }
 
-async function playNotificationSound() {
+async function playNotificationSound(isWorkTime) {
   try {
     // 检查声音是否开启
     const result = await chrome.storage.local.get(['soundEnabled']);
@@ -227,7 +228,7 @@ async function playNotificationSound() {
     const response = await chrome.runtime.sendMessage({
       target: 'offscreen',
       type: 'playSound',
-      soundUrl: chrome.runtime.getURL(NOTIFICATION_SOUND_URL)
+      soundUrl: chrome.runtime.getURL(isWorkTime ? WORK_END_SOUND_URL : BREAK_END_SOUND_URL)
     });
     
     if (!response || !response.success) {
@@ -247,7 +248,7 @@ async function handleTimerComplete() {
   
   // 根据设置播放提示音
   if (settings.soundEnabled) {
-    await playNotificationSound();
+    await playNotificationSound(isWorkTime);
   }
   
   const notificationId = Date.now().toString();
