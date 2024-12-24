@@ -1,10 +1,14 @@
 :root {
-    --primary-color: #2D3436;
-    --work-gradient: linear-gradient(135deg, #FFE4E1 0%, #FFB6C1 100%);
+    --primary-color: #3B4252;
+    --secondary-color: #6B7280;
+    --work-gradient: linear-gradient(135deg, #FFE2E2 0%, #FFD1D1 100%);
     --break-gradient: linear-gradient(135deg, #E0FFF4 0%, #98FF98 100%);
     --work-color: #FF6B6B;
     --break-color: #2ECC71;
-  }
+    --input-border: #E8E8E8;
+    --switch-active: #3498DB;
+    --switch-inactive: #6B7B93;
+}
 
   body {
     width: 320px;
@@ -63,9 +67,16 @@
     text-align: center;
     margin: 20px 0;
     color: var(--primary-color);
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-shadow: 
+      2px 2px 0 rgba(0, 0, 0, 0.1),
+      -1px -1px 0 rgba(255, 255, 255, 0.8),
+      0 4px 8px rgba(0, 0, 0, 0.15);
     font-variant-numeric: tabular-nums;
     line-height: 1;
+    letter-spacing: 1px;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
   }
 
   .time-unit-selector {
@@ -90,11 +101,12 @@
   }
 
   .settings {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     border-radius: 12px;
     padding: 16px;
     margin: 16px 0;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    backdrop-filter: blur(8px);
   }
 
   .setting-item {
@@ -116,11 +128,12 @@
   input[type="number"] {
     width: 50px;
     padding: 8px 12px;
-    border: 2px solid rgba(0, 0, 0, 0.1);
+    border: 2px solid var(--input-border);
     border-radius: 8px;
     font-size: 15px;
     text-align: center;
     transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   }
 
   input[type="number"]:focus {
@@ -163,6 +176,17 @@
     color: white;
   }
 
+  #pause {
+    background: var(--secondary-color);
+    color: white;
+  }
+
+  #reset {
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--primary-color);
+    border: 1px solid var(--input-border);
+  }
+
   .completed {
     text-align: center;
     background: rgba(255, 255, 255, 0.9);
@@ -200,7 +224,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
+    background-color: var(--switch-inactive);
     transition: .4s;
     border-radius: 24px;
   }
@@ -218,7 +242,7 @@
   }
 
   input:checked + .slider {
-    background-color: var(--primary-color);
+    background-color: var(--switch-active);
   }
 
   input:checked + .slider:before {
@@ -228,6 +252,7 @@
   /* 新的导航栏样式 */
   .nav-header {
     display: flex;
+    gap: 4px;
     margin-bottom: 12px;
     background: white;
     border-radius: 12px;
@@ -256,7 +281,7 @@
   /* 容器样式优化 */
   .container-wrapper {
     position: relative;
-    height: 500px; /* 固定高度，避免切换时的跳动 */
+    height: 484px; /* 固定高度，避免切换时的跳动 */
     overflow: hidden;
     width: 100%;
   }
