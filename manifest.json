@@ -29,7 +29,7 @@
     "128": "images/icon128_work.png"
   },
   "web_accessible_resources": [{
-    "resources": ["images/*", "sounds/*.mp3", "offscreen.html", "offscreen.js"],
+    "resources": ["images/*", "sounds/*.mp3", "src/offscreen/offscreen.html", "src/offscreen/offscreen.js"],
     "matches": ["<all_urls>"]
   }]
 } 

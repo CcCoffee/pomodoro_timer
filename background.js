@@ -570,7 +570,7 @@ async function createOffscreenDocument() {
   if (existingContexts.length > 0) return;
   
   await chrome.offscreen.createDocument({
-    url: 'offscreen.html',
+    url: 'src/offscreen/offscreen.html',
     reasons: ['AUDIO_PLAYBACK'],
     justification: 'Playing notification sound'
   });
