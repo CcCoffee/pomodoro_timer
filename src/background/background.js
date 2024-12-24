@@ -13,8 +13,8 @@ let isWorkTime = true;
 // 添加常量定义
 const DEFAULT_WORK_TIME = 25;
 const DEFAULT_BREAK_TIME = 5;
-const WORK_END_SOUND_URL = '../../sounds/notification.mp3';
-const BREAK_END_SOUND_URL = '../../sounds/notification.mp3';
+const WORK_END_SOUND_URL = '../../assets/sounds/notification.mp3';
+const BREAK_END_SOUND_URL = '../../assets/sounds/notification.mp3';
 const DEFAULT_SETTINGS = {
   soundEnabled: true,
   notificationEnabled: true
@@ -49,9 +49,9 @@ function validateAndConvertTime(minutes, isWorkTime = true) {
 function updateIcon(isWork) {
   chrome.action.setIcon({
     path: {
-      "16": isWork ? "../../images/icon16_work.png" : "../../images/icon16_break.png",
-      "48": isWork ? "../../images/icon48_work.png" : "../../images/icon48_break.png",
-      "128": isWork ? "../../images/icon128_work.png" : "../../images/icon128_break.png"
+      "16": isWork ? "../../assets/images/icon16_work.png" : "../../assets/images/icon16_break.png",
+      "48": isWork ? "../../assets/images/icon48_work.png" : "../../assets/images/icon48_break.png",
+      "128": isWork ? "../../assets/images/icon128_work.png" : "../../assets/images/icon128_break.png"
     }
   });
 }
@@ -351,7 +351,7 @@ async function handleTimerComplete() {
     if (settings.notificationEnabled) {
       await chrome.notifications.create(notificationId, {
         type: 'basic',
-        iconUrl: chrome.runtime.getURL('../../images/icon128_break.png'),
+        iconUrl: chrome.runtime.getURL('../../assets/images/icon128_break.png'),
         title: chrome.i18n.getMessage('workTimeComplete'),
         message: chrome.i18n.getMessage('breakTimeStarted'),
         requireInteraction: false
@@ -376,7 +376,7 @@ async function handleTimerComplete() {
     if (settings.notificationEnabled) {
       await chrome.notifications.create(notificationId, {
         type: 'basic',
-        iconUrl: chrome.runtime.getURL('../../images/icon128_work.png'),
+        iconUrl: chrome.runtime.getURL('../../assets/images/icon128_work.png'),
         title: chrome.i18n.getMessage('breakTimeComplete'),
         message: chrome.i18n.getMessage('workTimeStarted'),
         requireInteraction: false

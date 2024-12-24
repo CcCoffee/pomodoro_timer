@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <!-- 番茄背景 -->
+  <circle cx="64" cy="64" r="60" fill="#4CAF50"/>
+  
+  <!-- 番茄叶子 -->
+  <path d="M64 4 Q80 12 76 28 L64 28 L52 28 Q48 12 64 4" fill="#81C784"/>
+  <path d="M52 28 Q40 24 44 12 Q48 16 52 28" fill="#81C784"/>
+  <path d="M76 28 Q88 24 84 12 Q80 16 76 28" fill="#81C784"/>
+  
+  <!-- 时钟外圈 -->
+  <circle cx="64" cy="64" r="45" fill="none" stroke="white" stroke-width="4"/>
+  
+  <!-- 时钟刻度 -->
+  <line x1="64" y1="25" x2="64" y2="35" stroke="white" stroke-width="3"/>
+  <line x1="64" y1="93" x2="64" y2="103" stroke="white" stroke-width="3"/>
+  <line x1="25" y1="64" x2="35" y2="64" stroke="white" stroke-width="3"/>
+  <line x1="93" y1="64" x2="103" y2="64" stroke="white" stroke-width="3"/>
+  
+  <!-- 时钟指针 -->
+  <line x1="64" y1="64" x2="64" y2="35" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  <line x1="64" y1="64" x2="85" y2="64" stroke="white" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- 中心点 -->
+  <circle cx="64" cy="64" r="3" fill="white"/>
+</svg> 
