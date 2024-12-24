@@ -1,6 +1,13 @@
 let isWorkTime = true;
 let timeUnit = 'min';
 
+// 添加计时器状态枚举（与background.js保持一致）
+const TimerState = {
+  STOPPED: 'STOPPED',   // 计时器停止（初始状态或重置后）
+  RUNNING: 'RUNNING',   // 计时器运行中
+  PAUSED: 'PAUSED'     // 计时器暂停
+};
+
 // DOM元素
 const timeDisplay = document.getElementById('time-display');
 const startButton = document.getElementById('start');
@@ -88,7 +95,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (response) {
         console.log('getState', response);
         isWorkTime = response.isWorkTime;
-        updateButtonStates(response.isRunning);
+        updateButtonStates(response.timerState);
         updateDisplayFromSeconds(response.timeLeft);
         updateStateVisuals(response.isWorkTime);
       }
@@ -180,17 +187,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'timerUpdate') {
     const state = message.state;
     isWorkTime = state.isWorkTime;
-    updateButtonStates(state.isRunning);
+    updateButtonStates(state.timerState);
     updateDisplayFromSeconds(state.timeLeft);
     updateStateVisuals(state.isWorkTime);
   } else if (message.type === 'updateCompletedPomodoros') {
     completedCount.textContent = message.count;
+    // 如果当前在统计页面，立即刷新统计数据
+    if (document.querySelector('.container-wrapper').classList.contains('show-stats')) {
+      loadAndDisplayStats();
+    }
   }
 });
 
-function updateButtonStates(isRunning) {
-  startButton.disabled = isRunning;
-  pauseButton.disabled = !isRunning;
+function updateButtonStates(timerState) {
+  startButton.disabled = timerState === TimerState.RUNNING;
+  pauseButton.disabled = timerState !== TimerState.RUNNING;
+  resetButton.disabled = timerState === TimerState.STOPPED;
 }
 
 function updateDisplayFromSeconds(seconds) {
@@ -347,7 +359,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'timerUpdate') {
     const state = message.state;
     isWorkTime = state.isWorkTime;
-    updateButtonStates(state.isRunning);
+    updateButtonStates(state.timerState);
     updateDisplayFromSeconds(state.timeLeft);
     updateStateVisuals(state.isWorkTime);
   } else if (message.type === 'updateCompletedPomodoros') {

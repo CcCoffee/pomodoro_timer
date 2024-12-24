@@ -1,6 +1,13 @@
+// 添加计时器状态枚举
+const TimerState = {
+  STOPPED: 'STOPPED',   // 计时器停止（初始状态或重置后）
+  RUNNING: 'RUNNING',   // 计时器运行中
+  PAUSED: 'PAUSED'     // 计时器暂停
+};
+
 let timer;
 let timeLeft;
-let isRunning = false;
+let timerState = TimerState.STOPPED;  // 使用新的状态变量替代 isRunning
 let isWorkTime = true;
 
 // 添加常量定义
@@ -114,7 +121,7 @@ chrome.runtime.onInstalled.addListener(async () => {
     const workTime = validateAndConvertTime(result.workTime, true);
     timeLeft = workTime * 60;
     isWorkTime = true;
-    isRunning = false;
+    timerState = TimerState.STOPPED;
     
     // 设置默认值
     const defaultValues = {
@@ -163,12 +170,12 @@ chrome.runtime.onStartup.addListener(async () => {
   }
 });
 
-// 保存状态到storage
+// 修改保存状态到storage的函数
 async function saveState() {
   try {
     await chrome.storage.local.set({
       timeLeft,
-      isRunning,
+      timerState,
       isWorkTime
     });
   } catch (error) {
@@ -176,7 +183,7 @@ async function saveState() {
   }
 }
 
-// 处理来自popup的消息
+// 修改处理来自popup的消息的函数
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const handleMessage = async () => {
     switch (message.type) {
@@ -192,7 +199,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'getState':
         return {
           timeLeft: timeLeft || 0,
-          isRunning,
+          timerState,
           isWorkTime
         };
       case 'getStats':
@@ -207,10 +214,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return true;
 });
 
+// 修改计时器控制函数
 async function startTimer() {
   try {
-    if (!isRunning) {
-      isRunning = true;
+    if (timerState !== TimerState.RUNNING) {
+      timerState = TimerState.RUNNING;
       timer = setInterval(async () => {
         await updateTimer();
       }, 100);
@@ -218,14 +226,14 @@ async function startTimer() {
     }
   } catch (error) {
     console.error('启动计时器时出错:', error);
-    isRunning = false;
+    timerState = TimerState.STOPPED;
   }
 }
 
 async function pauseTimer() {
   try {
-    if (isRunning) {
-      isRunning = false;
+    if (timerState === TimerState.RUNNING) {
+      timerState = TimerState.PAUSED;
       clearInterval(timer);
       await broadcastState();
     }
@@ -235,7 +243,7 @@ async function pauseTimer() {
 }
 
 async function resetTimer() {
-  isRunning = false;
+  timerState = TimerState.STOPPED;
   clearInterval(timer);
   isWorkTime = true;
   updateIcon(isWorkTime);
@@ -246,6 +254,7 @@ async function resetTimer() {
   await broadcastState();
 }
 
+// 修改更新计时器函数
 async function updateTimer() {
   try {
     if (timeLeft > 0) {
@@ -260,13 +269,14 @@ async function updateTimer() {
   }
 }
 
+// 修改广播状态函数
 async function broadcastState() {
   try {
     await chrome.runtime.sendMessage({
       type: 'timerUpdate',
       state: {
         timeLeft: timeLeft || 0,
-        isRunning,
+        timerState,
         isWorkTime
       }
     });
@@ -277,78 +287,27 @@ async function broadcastState() {
   }
   
   // 更新badge
-  if (!isRunning) {
+  if (timerState === TimerState.PAUSED) {
+    await chrome.action.setBadgeText({ text: '||' });
+  } else if (timerState === TimerState.STOPPED) {
     await chrome.action.setBadgeText({ text: '' });
   } else {
     const minutes = Math.ceil((timeLeft || 0) / 60);
     await chrome.action.setBadgeText({ text: minutes.toString() });
-    await chrome.action.setBadgeTextColor({ color: '#FFFFFF' });
-    await chrome.action.setBadgeBackgroundColor({ 
-      color: isWorkTime ? '#e74c3c' : '#2ecc71'
-    });
   }
+  await chrome.action.setBadgeTextColor({ color: '#FFFFFF' });
+  await chrome.action.setBadgeBackgroundColor({ 
+    color: isWorkTime ? '#e74c3c' : '#2ecc71'
+  });
   
   updateIcon(isWorkTime);
   await saveState();
 }
 
-async function prepareNextTimer() {
-  try {
-    const result = await chrome.storage.local.get(['workTime', 'breakTime']);
-    if (isWorkTime) {
-      const breakTime = validateAndConvertTime(result.breakTime, false);
-      timeLeft = breakTime * 60;
-    } else {
-      const workTime = validateAndConvertTime(result.workTime, true);
-      timeLeft = workTime * 60;
-    }
-    await updateIcon(isWorkTime);
-    await broadcastState();
-  } catch (error) {
-    console.error('准备下一个计时器时出错:', error);
-  }
-}
-
-async function createOffscreenDocument() {
-  const existingContexts = await chrome.runtime.getContexts({
-    contextTypes: ['OFFSCREEN_DOCUMENT']
-  });
-  
-  if (existingContexts.length > 0) return;
-  
-  await chrome.offscreen.createDocument({
-    url: 'offscreen.html',
-    reasons: ['AUDIO_PLAYBACK'],
-    justification: 'Playing notification sound'
-  });
-}
-
-async function playNotificationSound(isWorkTime) {
-  try {
-    // 检查声音是否开启
-    const result = await chrome.storage.local.get(['soundEnabled']);
-    if (!result.soundEnabled) {
-      return; // 如果声音被禁用，直接返回
-    }
-
-    await createOffscreenDocument();
-    const response = await chrome.runtime.sendMessage({
-      target: 'offscreen',
-      type: 'playSound',
-      soundUrl: chrome.runtime.getURL(isWorkTime ? WORK_END_SOUND_URL : BREAK_END_SOUND_URL)
-    });
-    
-    if (!response || !response.success) {
-      console.error('播放提示音失败:', response?.error || '未知错误');
-    }
-  } catch (error) {
-    console.error('播放提示音失败:', error);
-  }
-}
-
+// 修改计时器完成处理函数
 async function handleTimerComplete() {
   clearInterval(timer);
-  isRunning = false;
+  timerState = TimerState.STOPPED;
   
   // 获取通知和声音设置
   const settings = await chrome.storage.local.get(['soundEnabled', 'notificationEnabled']);
