@@ -4,15 +4,15 @@
     "description": "The name of the application"
   },
   "appDescription": {
-    "message": "A simple and effective Pomodoro Timer to boost your productivity",
+    "message": "A concise and efficient Pomodoro Timer to help you stay focused and boost productivity",
     "description": "The description of the application"
   },
   "workTimeComplete": {
-    "message": "Pomodoro Complete!",
+    "message": "Great job! You've completed a focus session",
     "description": "Focus time completion notification title"
   },
   "breakTimeStarted": {
-    "message": "Break time has started automatically.",
+    "message": "Take a break and relax for a moment",
     "description": "Break time start notification message"
   },
   "breakTimeComplete": {
@@ -20,7 +20,7 @@
     "description": "Break time completion notification title"
   },
   "workTimeStarted": {
-    "message": "New Pomodoro time has started automatically.",
+    "message": "New focus session started, let's stay focused",
     "description": "Focus time start notification message"
   },
   "workStatus": {
@@ -48,7 +48,7 @@
     "description": "Break duration setting label"
   },
   "start": {
-    "message": "Start",
+    "message": "Focus",
     "description": "Start button text"
   },
   "pause": {
@@ -56,19 +56,19 @@
     "description": "Pause button text"
   },
   "reset": {
-    "message": "Reset",
+    "message": "Restart",
     "description": "Reset button text"
   },
   "soundEnabled": {
-    "message": "Sound",
+    "message": "Sound Alert",
     "description": "Sound enabled setting label"
   },
   "notificationEnabled": {
-    "message": "Notifications",
+    "message": "Desktop Alert",
     "description": "Notification enabled setting label"
   },
   "completedPomodoros": {
-    "message": "Today's Pomodoros:",
+    "message": "Today's Focus Sessions:",
     "description": "Completed pomodoros counter label"
   },
   "focusTimer": {
