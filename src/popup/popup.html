@@ -367,8 +367,8 @@
 <body>
   <!-- 导航栏 -->
   <div class="nav-header">
-    <button class="nav-button active" data-page="timer">专注计时</button>
-    <button class="nav-button" data-page="stats">统计分析</button>
+    <button class="nav-button active" data-page="timer" data-i18n="focusTimer">专注计时</button>
+    <button class="nav-button" data-page="stats" data-i18n="statistics">统计分析</button>
   </div>
 
   <div class="container-wrapper">
@@ -426,8 +426,8 @@
       <!-- 日统计 -->
       <div class="chart-section">
         <div class="chart-header">
-          <div class="chart-title">近30天每日番茄数</div>
-          <div class="total-count" id="daily-total">总计: 0</div>
+          <div class="chart-title" data-i18n="dailyStats">近30天每日番茄数</div>
+          <div class="total-count" id="daily-total"></div>
         </div>
         <div class="chart-container">
           <canvas id="dailyChart"></canvas>
@@ -437,8 +437,8 @@
       <!-- 周统计 -->
       <div class="chart-section">
         <div class="chart-header">
-          <div class="chart-title">近半年每周番茄数</div>
-          <div class="total-count" id="weekly-total">总计: 0</div>
+          <div class="chart-title" data-i18n="weeklyStats">近半年每周番茄数</div>
+          <div class="total-count" id="weekly-total"></div>
         </div>
         <div class="chart-container">
           <canvas id="weeklyChart"></canvas>
@@ -448,8 +448,8 @@
       <!-- 月统计 -->
       <div class="chart-section">
         <div class="chart-header">
-          <div class="chart-title">近一年每月番茄数</div>
-          <div class="total-count" id="monthly-total">总计: 0</div>
+          <div class="chart-title" data-i18n="monthlyStats">近一年每月番茄数</div>
+          <div class="total-count" id="monthly-total"></div>
         </div>
         <div class="chart-container">
           <canvas id="monthlyChart"></canvas>

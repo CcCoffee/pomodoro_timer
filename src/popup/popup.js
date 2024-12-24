@@ -163,6 +163,12 @@ function initializeI18n() {
   
   // 完成计数文本
   document.getElementById('completed-text').textContent = chrome.i18n.getMessage('completedPomodoros');
+
+  // 导航按钮文本
+  document.querySelectorAll('[data-i18n]').forEach(element => {
+    const messageKey = element.getAttribute('data-i18n');
+    element.textContent = chrome.i18n.getMessage(messageKey);
+  });
 }
 
 // 更新状态文本的函数
@@ -246,9 +252,9 @@ async function loadAndDisplayStats() {
 
 // 更新总计数据
 function updateTotalCounts(stats) {
-  document.getElementById('daily-total').textContent = `总计: ${stats.daily.data.reduce((a, b) => a + b, 0)}`;
-  document.getElementById('weekly-total').textContent = `总计: ${stats.weekly.data.reduce((a, b) => a + b, 0)}`;
-  document.getElementById('monthly-total').textContent = `总计: ${stats.monthly.data.reduce((a, b) => a + b, 0)}`;
+  document.getElementById('daily-total').textContent = chrome.i18n.getMessage('totalCount', [stats.daily.data.reduce((a, b) => a + b, 0)]);
+  document.getElementById('weekly-total').textContent = chrome.i18n.getMessage('totalCount', [stats.weekly.data.reduce((a, b) => a + b, 0)]);
+  document.getElementById('monthly-total').textContent = chrome.i18n.getMessage('totalCount', [stats.monthly.data.reduce((a, b) => a + b, 0)]);
 }
 
 // 更新图表

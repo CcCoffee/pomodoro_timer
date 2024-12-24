@@ -70,5 +70,35 @@
   "completedPomodoros": {
     "message": "今日完成番茄數：",
     "description": "完成番茄數計數器標籤"
+  },
+  "focusTimer": {
+    "message": "專注計時",
+    "description": "專注計時導航按鈕文字"
+  },
+  "statistics": {
+    "message": "統計分析",
+    "description": "統計分析導航按鈕文字"
+  },
+  "dailyStats": {
+    "message": "近30天每日番茄數",
+    "description": "日統計標題"
+  },
+  "weeklyStats": {
+    "message": "近半年每週番茄數",
+    "description": "週統計標題"
+  },
+  "monthlyStats": {
+    "message": "近一年每月番茄數",
+    "description": "月統計標題"
+  },
+  "totalCount": {
+    "message": "總計: $COUNT$",
+    "description": "統計總計數",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "42"
+      }
+    }
   }
 } 

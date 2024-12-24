@@ -68,7 +68,37 @@
     "description": "Notification enabled setting label"
   },
   "completedPomodoros": {
-    "message": "Completed Pomodoros Today:",
+    "message": "Today's Pomodoros:",
     "description": "Completed pomodoros counter label"
+  },
+  "focusTimer": {
+    "message": "Focus Timer",
+    "description": "Focus timer navigation button text"
+  },
+  "statistics": {
+    "message": "Statistics",
+    "description": "Statistics navigation button text"
+  },
+  "dailyStats": {
+    "message": "Daily (Last 30 Days)",
+    "description": "Daily statistics title"
+  },
+  "weeklyStats": {
+    "message": "Weekly (Last 6 Months)",
+    "description": "Weekly statistics title"
+  },
+  "monthlyStats": {
+    "message": "Monthly (Last Year)",
+    "description": "Monthly statistics title"
+  },
+  "totalCount": {
+    "message": "Total: $COUNT$",
+    "description": "Statistics total count",
+    "placeholders": {
+      "count": {
+        "content": "$1",
+        "example": "42"
+      }
+    }
   }
 } 
