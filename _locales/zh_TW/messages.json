@@ -56,7 +56,7 @@
     "description": "暫停按鈕文字"
   },
   "reset": {
-    "message": "重新開始",
+    "message": "重置",
     "description": "重置按鈕文字"
   },
   "soundEnabled": {

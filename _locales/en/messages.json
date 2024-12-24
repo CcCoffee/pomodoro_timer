@@ -56,7 +56,7 @@
     "description": "Pause button text"
   },
   "reset": {
-    "message": "Restart",
+    "message": "Reset",
     "description": "Reset button text"
   },
   "soundEnabled": {
