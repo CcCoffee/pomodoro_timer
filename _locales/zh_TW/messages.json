@@ -100,5 +100,17 @@
         "example": "42"
       }
     }
+  },
+  "dailyPomodoroCount": {
+    "message": "每日專注數",
+    "description": "日統計圖表標籤"
+  },
+  "weeklyPomodoroCount": {
+    "message": "每週專注數",
+    "description": "週統計圖表標籤"
+  },
+  "monthlyPomodoroCount": {
+    "message": "每月專注數",
+    "description": "月統計圖表標籤"
   }
 } 

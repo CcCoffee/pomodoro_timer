@@ -93,12 +93,24 @@
   },
   "totalCount": {
     "message": "Total: $COUNT$",
-    "description": "Statistics total count",
+    "description": "Total count in statistics",
     "placeholders": {
       "count": {
         "content": "$1",
         "example": "42"
       }
     }
+  },
+  "dailyPomodoroCount": {
+    "message": "Daily Focus Sessions",
+    "description": "Daily statistics chart label"
+  },
+  "weeklyPomodoroCount": {
+    "message": "Weekly Focus Sessions",
+    "description": "Weekly statistics chart label"
+  },
+  "monthlyPomodoroCount": {
+    "message": "Monthly Focus Sessions",
+    "description": "Monthly statistics chart label"
   }
 } 

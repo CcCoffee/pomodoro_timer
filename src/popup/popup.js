@@ -305,7 +305,7 @@ function updateCharts(stats) {
     data: {
       labels: stats.daily.labels,
       datasets: [{
-        label: '每日番茄数',
+        label: chrome.i18n.getMessage('dailyPomodoroCount'),
         data: stats.daily.data,
         backgroundColor: '#FF6B6B88',
         borderColor: '#FF6B6B',
@@ -322,7 +322,7 @@ function updateCharts(stats) {
     data: {
       labels: stats.weekly.labels,
       datasets: [{
-        label: '每周番茄数',
+        label: chrome.i18n.getMessage('weeklyPomodoroCount'),
         data: stats.weekly.data,
         backgroundColor: '#2ECC7188',
         borderColor: '#2ECC71',
@@ -339,7 +339,7 @@ function updateCharts(stats) {
     data: {
       labels: stats.monthly.labels,
       datasets: [{
-        label: '每月番茄数',
+        label: chrome.i18n.getMessage('monthlyPomodoroCount'),
         data: stats.monthly.data,
         backgroundColor: '#3498DB88',
         borderColor: '#3498DB',
