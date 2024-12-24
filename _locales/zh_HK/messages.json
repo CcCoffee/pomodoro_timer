@@ -4,15 +4,15 @@
     "description": "應用名稱"
   },
   "appDescription": {
-    "message": "一個簡單高效的番茄工作法計時器，助你提高工作效率",
+    "message": "簡潔高效的番茄工作法工具，助你保持專注，提升工作效率",
     "description": "應用描述"
   },
   "workTimeComplete": {
-    "message": "番茄時間完成！",
+    "message": "太棒了！完成一個番茄鐘",
     "description": "工作時間完成通知標題"
   },
   "breakTimeStarted": {
-    "message": "已自動開始休息時間。",
+    "message": "休息一下，放鬆片刻",
     "description": "休息時間開始通知訊息"
   },
   "breakTimeComplete": {
@@ -20,11 +20,11 @@
     "description": "休息時間完成通知標題"
   },
   "workTimeStarted": {
-    "message": "已自動開始新的番茄時間。",
+    "message": "新的番茄鐘開始啦，讓我們專注工作",
     "description": "工作時間開始通知訊息"
   },
   "workStatus": {
-    "message": "工作時間",
+    "message": "專注時間",
     "description": "工作時間狀態文本"
   },
   "breakStatus": {
@@ -40,7 +40,7 @@
     "description": "秒單位文本"
   },
   "workDuration": {
-    "message": "工作時長（分鐘）",
+    "message": "專注時長（分鐘）",
     "description": "工作時長設置標籤"
   },
   "breakDuration": {
@@ -48,7 +48,7 @@
     "description": "休息時長設置標籤"
   },
   "start": {
-    "message": "開始",
+    "message": "開始專注",
     "description": "開始按鈕文本"
   },
   "pause": {
@@ -56,19 +56,19 @@
     "description": "暫停按鈕文本"
   },
   "reset": {
-    "message": "重置",
+    "message": "重新開始",
     "description": "重置按鈕文本"
   },
   "soundEnabled": {
-    "message": "聲音提醒",
-    "description": "聲音提醒啟用設置標籤"
+    "message": "提示音效",
+    "description": "提示音效啟用設置標籤"
   },
   "notificationEnabled": {
-    "message": "桌面通知",
-    "description": "桌面通知啟用設置標籤"
+    "message": "桌面提醒",
+    "description": "桌面提醒啟用設置標籤"
   },
   "completedPomodoros": {
-    "message": "今日完成番茄數：",
+    "message": "今日專注次數：",
     "description": "完成番茄數計數器標籤"
   },
   "focusTimer": {
@@ -80,15 +80,15 @@
     "description": "統計分析導航按鈕文本"
   },
   "dailyStats": {
-    "message": "近30天每日番茄數",
+    "message": "近30天每日專注數",
     "description": "日統計標題"
   },
   "weeklyStats": {
-    "message": "近半年每週番茄數",
+    "message": "近半年每週專注數",
     "description": "週統計標題"
   },
   "monthlyStats": {
-    "message": "近一年每月番茄數",
+    "message": "近一年每月專注數",
     "description": "月統計標題"
   },
   "totalCount": {

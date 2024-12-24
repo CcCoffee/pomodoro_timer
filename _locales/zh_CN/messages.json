@@ -4,15 +4,15 @@
     "description": "应用名称"
   },
   "appDescription": {
-    "message": "一个简单高效的番茄工作法计时器，助你提高工作效率",
+    "message": "简洁高效的番茄工作法工具，助你保持专注，提升工作效率",
     "description": "应用描述"
   },
   "workTimeComplete": {
-    "message": "番茄时间完成！",
+    "message": "太棒了！完成一个番茄钟",
     "description": "工作时间完成通知标题"
   },
   "breakTimeStarted": {
-    "message": "已自动开始休息时间。",
+    "message": "休息一下，放松片刻",
     "description": "休息时间开始通知消息"
   },
   "breakTimeComplete": {
@@ -20,11 +20,11 @@
     "description": "休息时间完成通知标题"
   },
   "workTimeStarted": {
-    "message": "已自动开始新的番茄时间。",
+    "message": "新的番茄钟开始啦，让我们专注工作",
     "description": "工作时间开始通知消息"
   },
   "workStatus": {
-    "message": "工作时间",
+    "message": "专注时间",
     "description": "工作时间状态文本"
   },
   "breakStatus": {
@@ -40,7 +40,7 @@
     "description": "秒单位文本"
   },
   "workDuration": {
-    "message": "工作时长（分钟）",
+    "message": "专注时长（分钟）",
     "description": "工作时长设置标签"
   },
   "breakDuration": {
@@ -48,7 +48,7 @@
     "description": "休息时长设置标签"
   },
   "start": {
-    "message": "开始",
+    "message": "开始专注",
     "description": "开始按钮文本"
   },
   "pause": {
@@ -56,19 +56,19 @@
     "description": "暂停按钮文本"
   },
   "reset": {
-    "message": "重置",
+    "message": "重新开始",
     "description": "重置按钮文本"
   },
   "soundEnabled": {
-    "message": "声音提醒",
+    "message": "提示音效",
     "description": "声音启用设置标签"
   },
   "notificationEnabled": {
-    "message": "桌面通知",
+    "message": "桌面提醒",
     "description": "桌面通知启用设置标签"
   },
   "completedPomodoros": {
-    "message": "今日完成番茄数：",
+    "message": "今日专注次数：",
     "description": "完成番茄数计数器标签"
   },
   "focusTimer": {
@@ -76,19 +76,19 @@
     "description": "专注计时导航按钮文本"
   },
   "statistics": {
-    "message": "统计分析",
+    "message": "数据统计",
     "description": "统计分析导航按钮文本"
   },
   "dailyStats": {
-    "message": "近30天每日番茄数",
+    "message": "近30天专注记录",
     "description": "日统计标题"
   },
   "weeklyStats": {
-    "message": "近半年每周番茄数",
+    "message": "近半年周度统计",
     "description": "周统计标题"
   },
   "monthlyStats": {
-    "message": "近一年每月番茄数",
+    "message": "近一年月度统计",
     "description": "月统计标题"
   },
   "totalCount": {

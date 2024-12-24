@@ -9,7 +9,7 @@
   },
   "workTimeComplete": {
     "message": "Pomodoro Complete!",
-    "description": "Work time completion notification title"
+    "description": "Focus time completion notification title"
   },
   "breakTimeStarted": {
     "message": "Break time has started automatically.",
@@ -21,11 +21,11 @@
   },
   "workTimeStarted": {
     "message": "New Pomodoro time has started automatically.",
-    "description": "Work time start notification message"
+    "description": "Focus time start notification message"
   },
   "workStatus": {
-    "message": "Work Time",
-    "description": "Work time status text"
+    "message": "Focus Time",
+    "description": "Focus time status text"
   },
   "breakStatus": {
     "message": "Break Time",
@@ -40,8 +40,8 @@
     "description": "Seconds unit text"
   },
   "workDuration": {
-    "message": "Work Duration (min)",
-    "description": "Work duration setting label"
+    "message": "Focus Duration (min)",
+    "description": "Focus duration setting label"
   },
   "breakDuration": {
     "message": "Break Duration (min)",
