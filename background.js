@@ -153,16 +153,8 @@ chrome.runtime.onInstalled.addListener(async () => {
 // 添加启动监听器来处理浏览器启动时的状态
 chrome.runtime.onStartup.addListener(async () => {
   try {
-    // 重置计时器状态
-    const result = await chrome.storage.local.get(['workTime']);
-    const workTime = validateAndConvertTime(result.workTime, true);
-    timeLeft = workTime * 60;
-    isWorkTime = true;
-    isRunning = false;
-    
-    // 更新图标和状态
-    await updateIcon(isWorkTime);
-    await broadcastState();
+    // 重置计时器和图标状态
+    await resetTimer();
     
     // 检查并重置番茄数量
     await checkAndResetPomodoroCount();
