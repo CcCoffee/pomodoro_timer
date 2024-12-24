@@ -150,6 +150,27 @@ chrome.runtime.onInstalled.addListener(async () => {
   }
 });
 
+// 添加启动监听器来处理浏览器启动时的状态
+chrome.runtime.onStartup.addListener(async () => {
+  try {
+    // 重置计时器状态
+    const result = await chrome.storage.local.get(['workTime']);
+    const workTime = validateAndConvertTime(result.workTime, true);
+    timeLeft = workTime * 60;
+    isWorkTime = true;
+    isRunning = false;
+    
+    // 更新图标和状态
+    await updateIcon(isWorkTime);
+    await broadcastState();
+    
+    // 检查并重置番茄数量
+    await checkAndResetPomodoroCount();
+  } catch (error) {
+    console.error('浏览器启动时重置状态出错:', error);
+  }
+});
+
 // 保存状态到storage
 async function saveState() {
   try {
