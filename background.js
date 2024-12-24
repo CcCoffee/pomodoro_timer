@@ -439,20 +439,36 @@ async function checkAndResetPomodoroCount() {
   try {
     const now = new Date();
     const today = now.toDateString();
+    const todayStr = now.toISOString().split('T')[0];
     const historyKey = DEV_CONFIG.useTestData ? STORAGE_KEYS.TEST_HISTORY : STORAGE_KEYS.REAL_HISTORY;
     
     const result = await chrome.storage.local.get(['lastResetDate', historyKey]);
     
     if (!result.lastResetDate || result.lastResetDate !== today) {
-      // 如果是新的一天，重置番茄数量
-      // 计算今天已完成的番茄数
-      const todayStr = now.toISOString().split('T')[0];
+      // 如果是新的一天，重置番茄数量为0
+      await chrome.storage.local.set({
+        completedPomodoros: 0,
+        lastResetDate: today
+      });
+
+      // 广播更新番茄数
+      chrome.runtime.sendMessage({
+        type: 'updateCompletedPomodoros',
+        count: 0
+      });
+    } else {
+      // 如果是同一天，从历史记录中计算今天的番茄数
       const history = result[historyKey] || [];
       const todayCount = history.filter(item => item.date === todayStr).length;
       
       await chrome.storage.local.set({
-        completedPomodoros: todayCount,
-        lastResetDate: today
+        completedPomodoros: todayCount
+      });
+
+      // 广播更新番茄数
+      chrome.runtime.sendMessage({
+        type: 'updateCompletedPomodoros',
+        count: todayCount
       });
     }
   } catch (error) {
