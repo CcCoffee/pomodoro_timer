@@ -543,4 +543,58 @@ async function updatePomodoroHistory() {
   const history = result[historyKey] || [];
   history.push({ date: today });
   await chrome.storage.local.set({ [historyKey]: history });
+}
+
+async function prepareNextTimer() {
+  try {
+    const result = await chrome.storage.local.get(['workTime', 'breakTime']);
+    if (isWorkTime) {
+      const breakTime = validateAndConvertTime(result.breakTime, false);
+      timeLeft = breakTime * 60;
+    } else {
+      const workTime = validateAndConvertTime(result.workTime, true);
+      timeLeft = workTime * 60;
+    }
+    await updateIcon(isWorkTime);
+    await broadcastState();
+  } catch (error) {
+    console.error('准备下一个计时器时出错:', error);
+  }
+}
+
+async function createOffscreenDocument() {
+  const existingContexts = await chrome.runtime.getContexts({
+    contextTypes: ['OFFSCREEN_DOCUMENT']
+  });
+  
+  if (existingContexts.length > 0) return;
+  
+  await chrome.offscreen.createDocument({
+    url: 'offscreen.html',
+    reasons: ['AUDIO_PLAYBACK'],
+    justification: 'Playing notification sound'
+  });
+}
+
+async function playNotificationSound(isWorkTime) {
+  try {
+    // 检查声音是否开启
+    const result = await chrome.storage.local.get(['soundEnabled']);
+    if (!result.soundEnabled) {
+      return; // 如果声音被禁用，直接返回
+    }
+
+    await createOffscreenDocument();
+    const response = await chrome.runtime.sendMessage({
+      target: 'offscreen',
+      type: 'playSound',
+      soundUrl: chrome.runtime.getURL(isWorkTime ? WORK_END_SOUND_URL : BREAK_END_SOUND_URL)
+    });
+    
+    if (!response || !response.success) {
+      console.error('播放提示音失败:', response?.error || '未知错误');
+    }
+  } catch (error) {
+    console.error('播放提示音失败:', error);
+  }
 } 
