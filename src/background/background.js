@@ -230,7 +230,7 @@ async function startTimer() {
       timerState = TimerState.RUNNING;
       timer = setInterval(async () => {
         await updateTimer();
-      }, 100);
+      }, 1000);
       await broadcastState();
     }
   } catch (error) {

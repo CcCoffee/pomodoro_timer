@@ -281,7 +281,7 @@
   /* 容器样式优化 */
   .container-wrapper {
     position: relative;
-    height: 484px; /* 固定高度，避免切换时的跳动 */
+    height: 494px; /* 固定高度，避免切换时的跳动 */
     overflow: hidden;
     width: 100%;
   }
