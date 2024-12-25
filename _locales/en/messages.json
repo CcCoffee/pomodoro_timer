@@ -4,7 +4,7 @@
     "description": "The name of the application"
   },
   "appDescription": {
-    "message": "A concise and efficient Pomodoro Timer to help you stay focused and boost productivity",
+    "message": "A concise and efficient Pomodoro Timer which is developed by Kevin K H Zheng, help you stay focused and boost productivity",
     "description": "The description of the application"
   },
   "workTimeComplete": {
