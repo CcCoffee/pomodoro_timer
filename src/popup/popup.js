@@ -29,7 +29,15 @@ unitButtons.forEach(btn => {
     chrome.storage.local.set({ timeUnit });
     chrome.runtime.sendMessage({ type: 'getState' }, (response) => {
       if (response) {
-        updateDisplayFromSeconds(response.timeLeft);
+        if (response.timeLeft === 0 && response.timerState === TimerState.STOPPED) {
+          // 如果时间为0且状态为停止，尝试恢复默认工作时间
+          chrome.storage.local.get(['workTime'], (result) => {
+            const workTime = result.workTime || 25;
+            updateDisplayFromSeconds(workTime * 60);
+          });
+        } else {
+          updateDisplayFromSeconds(response.timeLeft);
+        }
       }
     });
   });
@@ -93,10 +101,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     chrome.runtime.sendMessage({ type: 'getState' }, (response) => {
       if (response) {
-        console.log('getState', response);
+        if (response.timeLeft === 0 && response.timerState === TimerState.STOPPED) {
+          // 如果时间为0且状态为停止，尝试恢复默认工作时间
+          chrome.storage.local.get(['workTime'], (result) => {
+            const workTime = result.workTime || 25;
+            updateDisplayFromSeconds(workTime * 60);
+          });
+        } else {
+          updateDisplayFromSeconds(response.timeLeft);
+        }
         isWorkTime = response.isWorkTime;
         updateButtonStates(response.timerState);
-        updateDisplayFromSeconds(response.timeLeft);
         updateStateVisuals(response.isWorkTime);
       }
     });

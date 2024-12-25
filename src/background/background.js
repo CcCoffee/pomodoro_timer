@@ -183,9 +183,10 @@ chrome.runtime.onStartup.addListener(async () => {
 async function saveState() {
   try {
     await chrome.storage.local.set({
-      timeLeft,
+      timeLeft: timeLeft || 0,  // 确保有默认值
       timerState,
-      isWorkTime
+      isWorkTime,
+      lastSavedTime: Date.now() // 添加保存时间戳
     });
   } catch (error) {
     console.error('保存状态时出错:', error);
@@ -230,7 +231,7 @@ async function startTimer() {
       timerState = TimerState.RUNNING;
       timer = setInterval(async () => {
         await updateTimer();
-      }, 1000);
+      }, 100);
       await broadcastState();
     }
   } catch (error) {
@@ -259,7 +260,7 @@ async function resetTimer() {
   
   const result = await chrome.storage.local.get(['workTime']);
   const workTime = validateAndConvertTime(result.workTime, true);
-  timeLeft = workTime * 60;
+  timeLeft = workTime * 60 || DEFAULT_WORK_TIME * 60; // 确保有默认值
   await broadcastState();
 }
 
