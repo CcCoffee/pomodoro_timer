@@ -166,11 +166,25 @@ chrome.runtime.onInstalled.addListener(async () => {
   }
 });
 
-// 添加启动监听器来处理浏览器启动时的状态
+// 修改启动监听器来处理浏览器启动时的状态
 chrome.runtime.onStartup.addListener(async () => {
   try {
-    // 重置计时器和图标状态
-    await resetTimer();
+    // 先获取保存的状态
+    const savedState = await chrome.storage.local.get(['timeLeft', 'timerState', 'isWorkTime']);
+    
+    // 如果有保存的状态且不是停止状态，则恢复它
+    if (savedState.timerState && savedState.timerState !== TimerState.STOPPED) {
+      timeLeft = savedState.timeLeft || 0;
+      timerState = TimerState.STOPPED; // 重启后强制设为停止状态
+      isWorkTime = savedState.isWorkTime !== undefined ? savedState.isWorkTime : true;
+    } else {
+      // 如果没有保存的状态或是停止状态，则重置为初始状态
+      await resetTimer();
+    }
+    
+    // 更新图标和状态
+    await updateIcon(isWorkTime);
+    await broadcastState();
     
     // 检查并重置番茄数量
     await checkAndResetPomodoroCount();
@@ -228,6 +242,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 async function startTimer() {
   try {
     if (timerState !== TimerState.RUNNING) {
+      // 在启动计时器前检查 timeLeft
+      if (timeLeft <= 0) {
+        // 如果时间为0，根据当前模式重置时间
+        const result = await chrome.storage.local.get([isWorkTime ? 'workTime' : 'breakTime']);
+        timeLeft = validateAndConvertTime(result[isWorkTime ? 'workTime' : 'breakTime'], isWorkTime) * 60;
+      }
+      
       timerState = TimerState.RUNNING;
       timer = setInterval(async () => {
         await updateTimer();
