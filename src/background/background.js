@@ -249,15 +249,25 @@ async function startTimer() {
         timeLeft = validateAndConvertTime(result[isWorkTime ? 'workTime' : 'breakTime'], isWorkTime) * 60;
       }
       
+      // 确保清理之前的计时器
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
+      
       timerState = TimerState.RUNNING;
       timer = setInterval(async () => {
         await updateTimer();
-      }, 100);
+      }, 100);  // 修改为1秒的间隔
       await broadcastState();
     }
   } catch (error) {
     console.error('启动计时器时出错:', error);
     timerState = TimerState.STOPPED;
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
   }
 }
 
@@ -265,7 +275,10 @@ async function pauseTimer() {
   try {
     if (timerState === TimerState.RUNNING) {
       timerState = TimerState.PAUSED;
-      clearInterval(timer);
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
       await broadcastState();
     }
   } catch (error) {
@@ -275,7 +288,10 @@ async function pauseTimer() {
 
 async function resetTimer() {
   timerState = TimerState.STOPPED;
-  clearInterval(timer);
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
   isWorkTime = true;
   updateIcon(isWorkTime);
   
