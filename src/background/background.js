@@ -169,22 +169,7 @@ chrome.runtime.onInstalled.addListener(async () => {
 // 修改启动监听器来处理浏览器启动时的状态
 chrome.runtime.onStartup.addListener(async () => {
   try {
-    // 先获取保存的状态
-    const savedState = await chrome.storage.local.get(['timeLeft', 'timerState', 'isWorkTime']);
-    
-    // 如果有保存的状态且不是停止状态，则恢复它
-    if (savedState.timerState && savedState.timerState !== TimerState.STOPPED) {
-      timeLeft = savedState.timeLeft || 0;
-      timerState = TimerState.STOPPED; // 重启后强制设为停止状态
-      isWorkTime = savedState.isWorkTime !== undefined ? savedState.isWorkTime : true;
-    } else {
-      // 如果没有保存的状态或是停止状态，则重置为初始状态
-      await resetTimer();
-    }
-    
-    // 更新图标和状态
-    await updateIcon(isWorkTime);
-    await broadcastState();
+    await resetTimer();
     
     // 检查并重置番茄数量
     await checkAndResetPomodoroCount();
