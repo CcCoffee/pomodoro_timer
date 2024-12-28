@@ -265,17 +265,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.type) {
       case 'startTimer':
         if (timerState === TimerState.PAUSED) {
-          await resumeTimer();
+          return await resumeTimer();
         } else {
-          await startTimer();
+          return await startTimer();
         }
-        return { success: true };
       case 'pauseTimer':
-        await pauseTimer();
-        return { success: true };
+        return await pauseTimer();
       case 'resetTimer':
-        await resetTimer();
-        return { success: true };
+        return await resetTimer();
       case 'getState':
         const [timeLeft, currentTimerState, isWorkTime] = await Promise.all([
           getTimeLeft(),
@@ -292,6 +289,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       case 'checkAndReset':
         await checkAndResetPomodoroCount();
         return { success: true };
+      default:
+        return { success: false, error: 'Unknown message type' };
     }
   };
 
@@ -327,7 +326,9 @@ async function startTimer() {
         await updateTimer();
       }, 1000);  // 修改为1秒的间隔
       await broadcastState();
+      return { success: true };
     }
+    return { success: false };
   } catch (error) {
     console.error('启动计时器时出错:', error);
     await setTimerState(TimerState.STOPPED);
@@ -335,17 +336,18 @@ async function startTimer() {
       clearInterval(timer);
       timer = null;
     }
+    return { success: false, error: error.message };
   }
 }
 
 async function resumeTimer() {
-  console.log("恢复计时器")
   try {
     await setTimerState(TimerState.RUNNING);
     timer = setInterval(async () => {
       await updateTimer();
-    }, 1000);  // 修改为1秒的间隔
+    }, 1000);
     await broadcastState();
+    return { success: true };
   } catch (error) {
     console.error('恢复计时器时出错:', error);
     await setTimerState(TimerState.STOPPED);
@@ -353,6 +355,7 @@ async function resumeTimer() {
       clearInterval(timer);
       timer = null;
     }
+    return { success: false, error: error.message };
   }
 }
 
@@ -366,26 +369,35 @@ async function pauseTimer() {
         timer = null;
       }
       await broadcastState();
+      return { success: true };
     }
+    return { success: false };
   } catch (error) {
     console.error('暂停计时器时出错:', error);
+    return { success: false, error: error.message };
   }
 }
 
 async function resetTimer() {
-  await setTimerState(TimerState.STOPPED);
-  if (timer) {
-    clearInterval(timer);
-    timer = null;
+  try {
+    await setTimerState(TimerState.STOPPED);
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+    await setIsWorkTime(true);
+    const isWorkTime = await getIsWorkTime();
+    updateIcon(isWorkTime);
+    
+    const result = await chrome.storage.local.get(['workTime']);
+    const workTime = validateAndConvertTime(result.workTime, true);
+    await setTimeLeft(workTime * 60 || DEFAULT_WORK_TIME * 60);
+    await broadcastState();
+    return { success: true };
+  } catch (error) {
+    console.error('重置计时器时出错:', error);
+    return { success: false, error: error.message };
   }
-  await setIsWorkTime(true);
-  const isWorkTime = await getIsWorkTime();
-  updateIcon(isWorkTime);
-  
-  const result = await chrome.storage.local.get(['workTime']);
-  const workTime = validateAndConvertTime(result.workTime, true);
-  await setTimeLeft(workTime * 60 || DEFAULT_WORK_TIME * 60); // 确保有默认值
-  await broadcastState();
 }
 
 // 修改更新计时器函数

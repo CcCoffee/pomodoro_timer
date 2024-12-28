@@ -218,16 +218,40 @@ function updateStatusText(isWorkTime) {
   statusText.textContent = chrome.i18n.getMessage(isWorkTime ? 'workStatus' : 'breakStatus');
 }
 
-startButton.addEventListener('click', () => {
-  chrome.runtime.sendMessage({ type: 'startTimer' });
+startButton.addEventListener('click', async () => {
+  const response = await chrome.runtime.sendMessage({ type: 'startTimer' });
+  if (response && response.success) {
+    const state = await chrome.runtime.sendMessage({ type: 'getState' });
+    if (state) {
+      updateDisplayFromSeconds(state.timeLeft);
+      updateButtonStates(state.timerState);
+      updateStateVisuals(state.isWorkTime);
+    }
+  }
 });
 
-pauseButton.addEventListener('click', () => {
-  chrome.runtime.sendMessage({ type: 'pauseTimer' });
+pauseButton.addEventListener('click', async () => {
+  const response = await chrome.runtime.sendMessage({ type: 'pauseTimer' });
+  if (response && response.success) {
+    const state = await chrome.runtime.sendMessage({ type: 'getState' });
+    if (state) {
+      updateDisplayFromSeconds(state.timeLeft);
+      updateButtonStates(state.timerState);
+      updateStateVisuals(state.isWorkTime);
+    }
+  }
 });
 
-resetButton.addEventListener('click', () => {
-  chrome.runtime.sendMessage({ type: 'resetTimer' });
+resetButton.addEventListener('click', async () => {
+  const response = await chrome.runtime.sendMessage({ type: 'resetTimer' });
+  if (response && response.success) {
+    const state = await chrome.runtime.sendMessage({ type: 'getState' });
+    if (state) {
+      updateDisplayFromSeconds(state.timeLeft);
+      updateButtonStates(state.timerState);
+      updateStateVisuals(state.isWorkTime);
+    }
+  }
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
