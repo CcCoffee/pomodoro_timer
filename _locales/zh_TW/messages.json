@@ -48,7 +48,7 @@
     "description": "休息時長設定標籤"
   },
   "start": {
-    "message": "開始專注",
+    "message": "開始",
     "description": "開始按鈕文字"
   },
   "pause": {

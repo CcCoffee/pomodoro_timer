@@ -140,6 +140,29 @@ function formatMonthDay(date) {
   return `${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
+// 添加检查接收端是否存在的辅助函数
+async function hasReceiver() {
+  try {
+    const views = await chrome.runtime.getViews({ type: 'popup' });
+    return views.length > 0;
+  } catch (error) {
+    return false;
+  }
+}
+
+// 添加安全的消息发送函数
+async function sendMessageSafely(message) {
+  if (await hasReceiver()) {
+    try {
+      await chrome.runtime.sendMessage(message);
+    } catch (error) {
+      if (error.message !== "Could not establish connection. Receiving end does not exist.") {
+        console.error('发送消息时出错:', error);
+      }
+    }
+  }
+}
+
 // 修改 chrome.runtime.onInstalled 监听器
 chrome.runtime.onInstalled.addListener(async () => {
   try {
@@ -302,7 +325,7 @@ async function startTimer() {
       await setTimerState(TimerState.RUNNING);
       timer = setInterval(async () => {
         await updateTimer();
-      }, 100);  // 修改为1秒的间隔
+      }, 1000);  // 修改为1秒的间隔
       await broadcastState();
     }
   } catch (error) {
@@ -321,7 +344,7 @@ async function resumeTimer() {
     await setTimerState(TimerState.RUNNING);
     timer = setInterval(async () => {
       await updateTimer();
-    }, 100);  // 修改为1秒的间隔
+    }, 1000);  // 修改为1秒的间隔
     await broadcastState();
   } catch (error) {
     console.error('恢复计时器时出错:', error);
@@ -390,7 +413,7 @@ async function broadcastState() {
       getIsWorkTime()
     ]);
     
-    await chrome.runtime.sendMessage({
+    await sendMessageSafely({
       type: 'timerUpdate',
       state: {
         timeLeft: timeLeft || 0,
@@ -399,9 +422,7 @@ async function broadcastState() {
       }
     });
   } catch (error) {
-    if (error.message !== "Could not establish connection. Receiving end does not exist.") {
-      console.error('广播状态时出错:', error);
-    }
+    console.error('广播状态时出错:', error);
   }
   
   // 更新badge
@@ -486,7 +507,7 @@ async function handleTimerComplete() {
     }
 
     // 广播更新番茄数
-    chrome.runtime.sendMessage({
+    await sendMessageSafely({
       type: 'updateCompletedPomodoros',
       count: count
     });
@@ -531,7 +552,7 @@ async function checkAndResetPomodoroCount() {
       });
 
       // 广播更新番茄数
-      chrome.runtime.sendMessage({
+      await sendMessageSafely({
         type: 'updateCompletedPomodoros',
         count: 0
       });
@@ -549,7 +570,7 @@ async function checkAndResetPomodoroCount() {
       });
 
       // 广播更新番茄数
-      chrome.runtime.sendMessage({
+      await sendMessageSafely({
         type: 'updateCompletedPomodoros',
         count: todayCount
       });

@@ -48,7 +48,7 @@
     "description": "休息时长设置标签"
   },
   "start": {
-    "message": "开始专注",
+    "message": "开始",
     "description": "开始按钮文本"
   },
   "pause": {
