@@ -116,5 +116,29 @@
   "resume": {
     "message": "Resume",
     "description": "Resume button text"
+  },
+  "startShortcut": {
+    "message": "Shortcut: Ctrl+Shift+S (Mac: ⌘+Shift+S)",
+    "description": "Start button shortcut tooltip"
+  },
+  "pauseShortcut": {
+    "message": "Shortcut: Ctrl+Shift+P (Mac: ⌘+Shift+P)",
+    "description": "Pause button shortcut tooltip"
+  },
+  "resetShortcut": {
+    "message": "Shortcut: Ctrl+Shift+X (Mac: ⌘+Shift+X)",
+    "description": "Reset button shortcut tooltip"
+  },
+  "shortcutPrefix": {
+    "message": "Shortcut",
+    "description": "Shortcut tooltip prefix"
+  },
+  "notSet": {
+    "message": "Not Set",
+    "description": "Text shown when shortcut is not set"
+  },
+  "noShortcut": {
+    "message": "No shortcut assigned",
+    "description": "Text shown when there is no shortcut"
   }
 } 

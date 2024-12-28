@@ -183,6 +183,25 @@ function initializeI18n() {
   document.getElementById('pause').textContent = chrome.i18n.getMessage('pause');
   document.getElementById('reset').textContent = chrome.i18n.getMessage('reset');
   
+  // 获取实际的快捷键设置并更新按钮提示
+  chrome.commands.getAll(commands => {
+    const shortcutMap = {
+      'start-timer': document.getElementById('start'),
+      'pause-timer': document.getElementById('pause'),
+      'reset-timer': document.getElementById('reset')
+    };
+
+    commands.forEach(command => {
+      const button = shortcutMap[command.name];
+      if (button) {
+        const shortcut = command.shortcut || chrome.i18n.getMessage('notSet', '未设置');
+        const isMac = navigator.platform.includes('Mac');
+        const displayShortcut = isMac ? shortcut.replace('Ctrl', '⌘') : shortcut;
+        button.title = shortcut ? `${chrome.i18n.getMessage('shortcutPrefix')}: ${displayShortcut}` : chrome.i18n.getMessage('noShortcut');
+      }
+    });
+  });
+  
   // 完成计数文本
   document.getElementById('completed-text').textContent = chrome.i18n.getMessage('completedPomodoros');
 

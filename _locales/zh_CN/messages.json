@@ -116,5 +116,29 @@
   "resume": {
     "message": "继续",
     "description": "恢复按钮文本"
+  },
+  "startShortcut": {
+    "message": "快捷键：Ctrl+Shift+S (Mac: ⌘+Shift+S)",
+    "description": "开始按钮的快捷键提示"
+  },
+  "pauseShortcut": {
+    "message": "快捷键：Ctrl+Shift+P (Mac: ⌘+Shift+P)",
+    "description": "暂停按钮的快捷键提示"
+  },
+  "resetShortcut": {
+    "message": "快捷键：Ctrl+Shift+X (Mac: ⌘+Shift+X)",
+    "description": "重置按钮的快捷键提示"
+  },
+  "shortcutPrefix": {
+    "message": "快捷键",
+    "description": "快捷键提示前缀"
+  },
+  "notSet": {
+    "message": "未设置",
+    "description": "快捷键未设置时的提示"
+  },
+  "noShortcut": {
+    "message": "未设置快捷键",
+    "description": "没有快捷键时的提示"
   }
 } 

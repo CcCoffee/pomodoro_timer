@@ -116,5 +116,29 @@
   "resume": {
     "message": "繼續",
     "description": "恢復按鈕文字"
+  },
+  "startShortcut": {
+    "message": "快速鍵：Ctrl+Shift+S (Mac: ⌘+Shift+S)",
+    "description": "開始按鈕的快速鍵提示"
+  },
+  "pauseShortcut": {
+    "message": "快速鍵：Ctrl+Shift+P (Mac: ⌘+Shift+P)",
+    "description": "暫停按鈕的快速鍵提示"
+  },
+  "resetShortcut": {
+    "message": "快速鍵：Ctrl+Shift+X (Mac: ⌘+Shift+X)",
+    "description": "重置按鈕的快速鍵提示"
+  },
+  "shortcutPrefix": {
+    "message": "快速鍵",
+    "description": "快速鍵提示前綴"
+  },
+  "notSet": {
+    "message": "未設置",
+    "description": "快速鍵未設置時的提示"
+  },
+  "noShortcut": {
+    "message": "未設置快速鍵",
+    "description": "沒有快速鍵時的提示"
   }
 } 
