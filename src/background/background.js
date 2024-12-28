@@ -6,9 +6,6 @@ const TimerState = {
 };
 
 let timer;
-let timeLeft;
-let timerState = TimerState.STOPPED;  // 使用新的状态变量替代 isRunning
-let isWorkTime = true;
 
 // 添加常量定义
 const DEFAULT_WORK_TIME = 25;
@@ -33,8 +30,33 @@ const DEV_CONFIG = {
 // 存储键名常量
 const STORAGE_KEYS = {
   REAL_HISTORY: 'pomodoroHistory',
-  TEST_HISTORY: 'pomodoroTestHistory'
+  TEST_HISTORY: 'pomodoroTestHistory',
+  TIME_LEFT: 'timeLeft',  // 添加 timeLeft 的存储键名
+  TIMER_STATE: 'timerState', // 添加 timerState 的存储键名
+  IS_WORK_TIME: 'isWorkTime' // 添加 isWorkTime 的存储键名
 };
+
+// 添加获取 timerState 的辅助函数
+async function getTimerState() {
+  const result = await chrome.storage.local.get([STORAGE_KEYS.TIMER_STATE]);
+  return result[STORAGE_KEYS.TIMER_STATE] || TimerState.STOPPED;
+}
+
+// 添加设置 timerState 的辅助函数
+async function setTimerState(state) {
+  await chrome.storage.local.set({ [STORAGE_KEYS.TIMER_STATE]: state });
+}
+
+// 添加获取 isWorkTime 的辅助函数
+async function getIsWorkTime() {
+  const result = await chrome.storage.local.get([STORAGE_KEYS.IS_WORK_TIME]);
+  return result[STORAGE_KEYS.IS_WORK_TIME] !== undefined ? result[STORAGE_KEYS.IS_WORK_TIME] : true;
+}
+
+// 添加设置 isWorkTime 的辅助函数
+async function setIsWorkTime(value) {
+  await chrome.storage.local.set({ [STORAGE_KEYS.IS_WORK_TIME]: value });
+}
 
 // 添加验证函数
 function validateAndConvertTime(minutes, isWorkTime = true) {
@@ -128,9 +150,11 @@ chrome.runtime.onInstalled.addListener(async () => {
     ]);
     
     const workTime = validateAndConvertTime(result.workTime, true);
-    timeLeft = workTime * 60;
-    isWorkTime = true;
-    timerState = TimerState.STOPPED;
+    await chrome.storage.local.set({ 
+      [STORAGE_KEYS.TIME_LEFT]: workTime * 60,
+      [STORAGE_KEYS.IS_WORK_TIME]: true,
+      [STORAGE_KEYS.TIMER_STATE]: TimerState.STOPPED
+    });
     
     // 设置默认值
     const defaultValues = {
@@ -159,6 +183,7 @@ chrome.runtime.onInstalled.addListener(async () => {
       }
     }
     
+    const isWorkTime = await getIsWorkTime();
     await updateIcon(isWorkTime);
     await broadcastState();
   } catch (error) {
@@ -181,23 +206,46 @@ chrome.runtime.onStartup.addListener(async () => {
 // 修改保存状态到storage的函数
 async function saveState() {
   try {
+    const [timeLeft, timerState, isWorkTime] = await Promise.all([
+      getTimeLeft(),
+      getTimerState(),
+      getIsWorkTime()
+    ]);
+    
     await chrome.storage.local.set({
-      timeLeft: timeLeft || 0,  // 确保有默认值
-      timerState,
-      isWorkTime,
-      lastSavedTime: Date.now() // 添加保存时间戳
+      [STORAGE_KEYS.TIME_LEFT]: timeLeft,
+      [STORAGE_KEYS.TIMER_STATE]: timerState,
+      [STORAGE_KEYS.IS_WORK_TIME]: isWorkTime,
+      lastSavedTime: Date.now()
     });
   } catch (error) {
     console.error('保存状态时出错:', error);
   }
 }
 
+// 添加获取 timeLeft 的辅助函数
+async function getTimeLeft() {
+  const result = await chrome.storage.local.get([STORAGE_KEYS.TIME_LEFT]);
+  return result[STORAGE_KEYS.TIME_LEFT] || 0;
+}
+
+// 添加设置 timeLeft 的辅助函数
+async function setTimeLeft(value) {
+  await chrome.storage.local.set({ [STORAGE_KEYS.TIME_LEFT]: value });
+}
+
 // 修改处理来自popup的消息的函数
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const handleMessage = async () => {
+    const timerState = await getTimerState();
+    
     switch (message.type) {
       case 'startTimer':
-        await startTimer();
+        if (timerState === TimerState.PAUSED) {
+          await resumeTimer();
+        } else {
+          await startTimer();
+        }
         return { success: true };
       case 'pauseTimer':
         await pauseTimer();
@@ -206,9 +254,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         await resetTimer();
         return { success: true };
       case 'getState':
+        const [timeLeft, currentTimerState, isWorkTime] = await Promise.all([
+          getTimeLeft(),
+          getTimerState(),
+          getIsWorkTime()
+        ]);
         return {
           timeLeft: timeLeft || 0,
-          timerState,
+          timerState: currentTimerState,
           isWorkTime
         };
       case 'getStats':
@@ -226,12 +279,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // 修改计时器控制函数
 async function startTimer() {
   try {
+    const timerState = await getTimerState();
     if (timerState !== TimerState.RUNNING) {
+      const [timeLeft, isWorkTime] = await Promise.all([
+        getTimeLeft(),
+        getIsWorkTime()
+      ]);
+      
       // 在启动计时器前检查 timeLeft
       if (timeLeft <= 0) {
         // 如果时间为0，根据当前模式重置时间
         const result = await chrome.storage.local.get([isWorkTime ? 'workTime' : 'breakTime']);
-        timeLeft = validateAndConvertTime(result[isWorkTime ? 'workTime' : 'breakTime'], isWorkTime) * 60;
+        await setTimeLeft(validateAndConvertTime(result[isWorkTime ? 'workTime' : 'breakTime'], isWorkTime) * 60);
       }
       
       // 确保清理之前的计时器
@@ -240,7 +299,7 @@ async function startTimer() {
         timer = null;
       }
       
-      timerState = TimerState.RUNNING;
+      await setTimerState(TimerState.RUNNING);
       timer = setInterval(async () => {
         await updateTimer();
       }, 100);  // 修改为1秒的间隔
@@ -248,7 +307,25 @@ async function startTimer() {
     }
   } catch (error) {
     console.error('启动计时器时出错:', error);
-    timerState = TimerState.STOPPED;
+    await setTimerState(TimerState.STOPPED);
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+  }
+}
+
+async function resumeTimer() {
+  console.log("恢复计时器")
+  try {
+    await setTimerState(TimerState.RUNNING);
+    timer = setInterval(async () => {
+      await updateTimer();
+    }, 100);  // 修改为1秒的间隔
+    await broadcastState();
+  } catch (error) {
+    console.error('恢复计时器时出错:', error);
+    await setTimerState(TimerState.STOPPED);
     if (timer) {
       clearInterval(timer);
       timer = null;
@@ -258,8 +335,9 @@ async function startTimer() {
 
 async function pauseTimer() {
   try {
+    const timerState = await getTimerState();
     if (timerState === TimerState.RUNNING) {
-      timerState = TimerState.PAUSED;
+      await setTimerState(TimerState.PAUSED);
       if (timer) {
         clearInterval(timer);
         timer = null;
@@ -272,25 +350,27 @@ async function pauseTimer() {
 }
 
 async function resetTimer() {
-  timerState = TimerState.STOPPED;
+  await setTimerState(TimerState.STOPPED);
   if (timer) {
     clearInterval(timer);
     timer = null;
   }
-  isWorkTime = true;
+  await setIsWorkTime(true);
+  const isWorkTime = await getIsWorkTime();
   updateIcon(isWorkTime);
   
   const result = await chrome.storage.local.get(['workTime']);
   const workTime = validateAndConvertTime(result.workTime, true);
-  timeLeft = workTime * 60 || DEFAULT_WORK_TIME * 60; // 确保有默认值
+  await setTimeLeft(workTime * 60 || DEFAULT_WORK_TIME * 60); // 确保有默认值
   await broadcastState();
 }
 
 // 修改更新计时器函数
 async function updateTimer() {
   try {
+    const timeLeft = await getTimeLeft();
     if (timeLeft > 0) {
-      timeLeft--;
+      await setTimeLeft(timeLeft - 1);
       await broadcastState();
     } else {
       await handleTimerComplete();
@@ -304,6 +384,12 @@ async function updateTimer() {
 // 修改广播状态函数
 async function broadcastState() {
   try {
+    const [timeLeft, timerState, isWorkTime] = await Promise.all([
+      getTimeLeft(),
+      getTimerState(),
+      getIsWorkTime()
+    ]);
+    
     await chrome.runtime.sendMessage({
       type: 'timerUpdate',
       state: {
@@ -319,6 +405,12 @@ async function broadcastState() {
   }
   
   // 更新badge
+  const [timerState, timeLeft, isWorkTime] = await Promise.all([
+    getTimerState(),
+    getTimeLeft(),
+    getIsWorkTime()
+  ]);
+  
   if (timerState === TimerState.PAUSED) {
     await chrome.action.setBadgeText({ text: '||' });
   } else if (timerState === TimerState.STOPPED) {
@@ -339,10 +431,11 @@ async function broadcastState() {
 // 修改计时器完成处理函数
 async function handleTimerComplete() {
   clearInterval(timer);
-  timerState = TimerState.STOPPED;
+  await setTimerState(TimerState.STOPPED);
   
   // 获取通知和声音设置
   const settings = await chrome.storage.local.get(['soundEnabled', 'notificationEnabled']);
+  const isWorkTime = await getIsWorkTime();
   
   // 根据设置播放提示音
   if (settings.soundEnabled) {
@@ -372,11 +465,12 @@ async function handleTimerComplete() {
     });
     
     // 自动切换到休息时间
-    isWorkTime = false;
+    await setIsWorkTime(false);
     const breakResult = await chrome.storage.local.get(['breakTime']);
     const breakTime = validateAndConvertTime(breakResult.breakTime, false);
-    timeLeft = breakTime * 60;
-    updateIcon(isWorkTime);
+    await setTimeLeft(breakTime * 60);
+    const newIsWorkTime = await getIsWorkTime();
+    updateIcon(newIsWorkTime);
     await broadcastState();
     await startTimer();
     
@@ -398,10 +492,11 @@ async function handleTimerComplete() {
     });
   } else {
     // 自动切换到工作时间
-    isWorkTime = true;
+    await setIsWorkTime(true);
     const workResult = await chrome.storage.local.get(['workTime']);
-    timeLeft = validateAndConvertTime(workResult.workTime, true) * 60;
-    updateIcon(isWorkTime);
+    await setTimeLeft(validateAndConvertTime(workResult.workTime, true) * 60);
+    const newIsWorkTime = await getIsWorkTime();
+    updateIcon(newIsWorkTime);
     await broadcastState();
     await startTimer();
     
@@ -588,10 +683,10 @@ async function prepareNextTimer() {
     const result = await chrome.storage.local.get(['workTime', 'breakTime']);
     if (isWorkTime) {
       const breakTime = validateAndConvertTime(result.breakTime, false);
-      timeLeft = breakTime * 60;
+      await setTimeLeft(breakTime * 60);
     } else {
       const workTime = validateAndConvertTime(result.workTime, true);
-      timeLeft = workTime * 60;
+      await setTimeLeft(workTime * 60);
     }
     await updateIcon(isWorkTime);
     await broadcastState();
