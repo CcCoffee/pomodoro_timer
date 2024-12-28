@@ -29,6 +29,29 @@
     "48": "assets/images/icon48_work.png",
     "128": "assets/images/icon128_work.png"
   },
+  "commands": {
+    "start-timer": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "开始/继续计时"
+    },
+    "pause-timer": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+P",
+        "mac": "Command+Shift+P"
+      },
+      "description": "暂停计时"
+    },
+    "reset-timer": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+X",
+        "mac": "Command+Shift+X"
+      },
+      "description": "重置计时"
+    }
+  },
   "web_accessible_resources": [{
     "resources": ["assets/images/*", "assets/sounds/*.mp3", "src/offscreen/offscreen.html", "src/offscreen/offscreen.js"],
     "matches": ["<all_urls>"]

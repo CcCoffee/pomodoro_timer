@@ -751,4 +751,28 @@ async function playNotificationSound(isWorkTime) {
   } catch (error) {
     console.error('播放提示音失败:', error);
   }
-} 
+}
+
+// 添加快捷键命令监听器
+chrome.commands.onCommand.addListener(async (command) => {
+  try {
+    switch (command) {
+      case 'start-timer':
+        const timerState = await getTimerState();
+        if (timerState === TimerState.PAUSED) {
+          await resumeTimer();
+        } else {
+          await startTimer();
+        }
+        break;
+      case 'pause-timer':
+        await pauseTimer();
+        break;
+      case 'reset-timer':
+        await resetTimer();
+        break;
+    }
+  } catch (error) {
+    console.error('处理快捷键命令时出错:', error);
+  }
+}); 

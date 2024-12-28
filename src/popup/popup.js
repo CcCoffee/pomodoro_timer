@@ -74,6 +74,30 @@ document.addEventListener('DOMContentLoaded', async () => {
   // 检查是否需要重置番茄数量
   checkAndResetPomodoroCount();
   
+  // 立即获取最新状态
+  const currentState = await chrome.runtime.sendMessage({ type: 'getState' });
+  if (currentState) {
+    isWorkTime = currentState.isWorkTime;
+    updateButtonStates(currentState.timerState);
+    updateDisplayFromSeconds(currentState.timeLeft);
+    updateStateVisuals(currentState.isWorkTime);
+  }
+  
+  // 设置定时器每秒更新一次状态
+  const updateInterval = setInterval(async () => {
+    const state = await chrome.runtime.sendMessage({ type: 'getState' });
+    if (state) {
+      updateDisplayFromSeconds(state.timeLeft);
+      updateButtonStates(state.timerState);
+      updateStateVisuals(state.isWorkTime);
+    }
+  }, 1000);
+
+  // 在 popup 关闭时清理定时器
+  window.addEventListener('unload', () => {
+    clearInterval(updateInterval);
+  });
+  
   chrome.storage.local.get([
     'workTime', 
     'breakTime', 
@@ -98,23 +122,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const notificationEnabled = result.notificationEnabled !== undefined ? result.notificationEnabled : true;
     document.getElementById('sound-enabled').checked = soundEnabled;
     document.getElementById('notification-enabled').checked = notificationEnabled;
-    
-    chrome.runtime.sendMessage({ type: 'getState' }, (response) => {
-      if (response) {
-        if (response.timeLeft === 0 && response.timerState === TimerState.STOPPED) {
-          // 如果时间为0且状态为停止，尝试恢复默认工作时间
-          chrome.storage.local.get(['workTime'], (result) => {
-            const workTime = result.workTime || 25;
-            updateDisplayFromSeconds(workTime * 60);
-          });
-        } else {
-          updateDisplayFromSeconds(response.timeLeft);
-        }
-        isWorkTime = response.isWorkTime;
-        updateButtonStates(response.timerState);
-        updateStateVisuals(response.isWorkTime);
-      }
-    });
   });
 
   workTimeInput.addEventListener('change', () => {
