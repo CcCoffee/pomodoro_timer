@@ -224,6 +224,9 @@ function updateButtonStates(timerState) {
   startButton.disabled = timerState === TimerState.RUNNING;
   pauseButton.disabled = timerState !== TimerState.RUNNING;
   resetButton.disabled = timerState === TimerState.STOPPED;
+  
+  // 根据计时器状态更新开始按钮文本
+  startButton.textContent = chrome.i18n.getMessage(timerState === TimerState.PAUSED ? 'resume' : 'start');
 }
 
 function updateDisplayFromSeconds(seconds) {

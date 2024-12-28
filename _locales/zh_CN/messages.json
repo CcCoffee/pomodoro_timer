@@ -112,5 +112,9 @@
   "monthlyPomodoroCount": {
     "message": "每月专注数",
     "description": "月统计图表标签"
+  },
+  "resume": {
+    "message": "继续",
+    "description": "恢复按钮文本"
   }
 } 

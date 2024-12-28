@@ -100,5 +100,9 @@
         "example": "42"
       }
     }
+  },
+  "resume": {
+    "message": "繼續",
+    "description": "恢復按鈕文字"
   }
 } 

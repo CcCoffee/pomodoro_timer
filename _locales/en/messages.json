@@ -112,5 +112,9 @@
   "monthlyPomodoroCount": {
     "message": "Monthly Focus Sessions",
     "description": "Monthly statistics chart label"
+  },
+  "resume": {
+    "message": "Resume",
+    "description": "Resume button text"
   }
 } 
